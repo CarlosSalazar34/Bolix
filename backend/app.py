@@ -14,10 +14,13 @@ async def tasa_dolar():
     return {"tasas": [
         {
             "dolar": bcv['dolar_bcv'],
-            "euro": bcv['euro'] 
+            "euro": bcv['euro_bcv'] 
         }
     ]}
 
+@app.exception_handler(Exception)
+async def exception_handler(request, exc):
+    return {"error": str(exc)}
 
 if __name__ == "__main__":
     import uvicorn
