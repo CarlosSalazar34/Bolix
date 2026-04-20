@@ -61,4 +61,6 @@ async def get_data():
     print(bcv)
     print(binance)
 
-asyncio.run(get_data())
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(get_data())
