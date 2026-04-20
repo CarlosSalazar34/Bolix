@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from datetime import datetime
-from functions.dolar import get_bcv
+from functions.dolar import get_bcv, get_binance
 
 app = FastAPI(title="api-bolix")
 
@@ -11,10 +11,12 @@ async def root():
 @app.get("/tasa")
 async def tasa_dolar():
     bcv = await get_bcv()
+    binance = await get_binance()
     return {"tasas": [
         {
             "dolar": bcv['dolar_bcv'],
-            "euro": bcv['euro_bcv'] 
+            "euro": bcv['euro_bcv'] ,
+            "usdt": binance['usdt']
         }
     ]}
 
