@@ -43,7 +43,10 @@ export interface StatusResponse {
 export async function fetchTasas(): Promise<TasaResponse> {
   const res = await fetch(`${API_BASE}/tasa`, { headers })
   if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
-  return res.json()
+  const data = await res.json()
+  if (data.error) throw new Error(data.error)
+  if (data.dolar_bcv === undefined) throw new Error('Respuesta incompleta del servidor')
+  return data
 }
 
 export async function fetchHistorial(): Promise<HistorialResponse> {
