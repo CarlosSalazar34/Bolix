@@ -16,7 +16,7 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
-    <nav className="shrink-0 px-4 pb-[env(safe-area-inset-bottom,16px)] pt-2 bg-zinc-950/90 backdrop-blur-lg border-t border-zinc-800/60">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-[env(safe-area-inset-bottom,16px)] pt-2 bg-zinc-950/90 backdrop-blur-lg border-t border-zinc-800/60">
       <div className="flex justify-around items-center max-w-md mx-auto">
         {TABS.map(({ id, label, icon }) => {
           const active = activeTab === id

@@ -31,7 +31,7 @@ export default function App() {
   return (
     <div className="h-dvh bg-zinc-950 flex flex-col relative">
       {/* Scrollable content */}
-      <main className="flex-1 overflow-y-auto px-5 pt-6 pb-4 scrollbar-hide">
+      <main className="flex-1 overflow-y-auto px-5 pt-6 pb-20 scrollbar-hide">
         {tab === 'home' && <HomePage />}
         {tab === 'historial' && <HistorialPage />}
         {tab === 'alertas' && <AlertasPage />}
