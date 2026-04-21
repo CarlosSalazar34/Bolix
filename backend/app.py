@@ -129,6 +129,7 @@ async def get_historial_data():
 # ── Rutas ───────────────────────────────────────────────────────────────────
 @app.get("/")
 async def root():
+    print("pepe")
     return {"message": "Bienvenido a Bolix API", "status": "online"}
 
 
