@@ -95,7 +95,7 @@ Documentación interactiva: `http://localhost:5000/docs`
 ## 🔮 Roadmap
 
 - [x] Scraping del BCV (dólar y euro)
-- [ ] Fuente Binance P2P
+- [x] Fuente Binance P2P
 - [ ] Más fuentes de tasas (paralelo, monitor dólar, etc.)
 - [ ] Autenticación con API Key
 - [ ] Caché de tasas para evitar scraping excesivo

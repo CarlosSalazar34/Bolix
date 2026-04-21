@@ -1,0 +1,59 @@
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
+const headers = {
+  'Content-Type': 'application/json',
+}
+
+// ── Types ──────────────────────────────────────────────────────────────────
+export interface TasaResponse {
+  dolar_bcv: number
+  euro_bcv: number
+  usdt_binance: number
+  promedio: number
+  brecha_porcentual: string
+  estatus_mercado: string
+  error?: string
+}
+
+export interface HistorialItem {
+  fecha: string
+  dolar_bcv: number
+  usdt_binance: number
+  promedio: number
+  brecha: string
+}
+
+export interface HistorialResponse {
+  status: string
+  count: number
+  data: HistorialItem[]
+  error?: string
+}
+
+export interface StatusResponse {
+  version: string
+  status: string
+  fuentes: string[]
+  cache_ttl: string
+  redis: string
+  uptime: string
+}
+
+// ── API Calls ──────────────────────────────────────────────────────────────
+export async function fetchTasas(): Promise<TasaResponse> {
+  const res = await fetch(`${API_BASE}/tasa`, { headers })
+  if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
+  return res.json()
+}
+
+export async function fetchHistorial(): Promise<HistorialResponse> {
+  const res = await fetch(`${API_BASE}/historial`, { headers })
+  if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
+  return res.json()
+}
+
+export async function fetchStatus(): Promise<StatusResponse> {
+  const res = await fetch(`${API_BASE}/status`, { headers })
+  if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
+  return res.json()
+}
