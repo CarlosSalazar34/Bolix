@@ -82,7 +82,11 @@ async def get_cache(key: str):
         if row:
             age = (datetime.now(timezone.utc) - row["created_at"]).total_seconds()
             if age < CACHE_TTL:
-                return row["data"]
+                data = row["data"]
+                # asyncpg puede devolver JSONB como string
+                if isinstance(data, str):
+                    data = json.loads(data)
+                return data
             # Caché expirado, eliminarlo
             await conn.execute("DELETE FROM cache WHERE key = $1", key)
     return None
@@ -216,7 +220,10 @@ async def tasa_dolar():
                 row = await conn.fetchrow("SELECT data FROM cache WHERE key = $1", cache_key)
                 if row:
                     print(f"{BLUE}[BACKUP]{RESET} Sirviendo último valor conocido.")
-                    return row["data"]
+                    data = row["data"]
+                    if isinstance(data, str):
+                        data = json.loads(data)
+                    return data
         except Exception:
             pass
         return {"error": "Fuentes caídas y no hay backup disponible"}
