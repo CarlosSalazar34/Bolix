@@ -1,9 +1,11 @@
 import os
 import time
+import json
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
+from datetime import datetime, timezone
+import asyncpg
 
 #imports de modulos
 from functions.dolar import get_bcv, get_binance
@@ -27,12 +29,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Almacenamiento en memoria (reemplaza Redis)
+# ── Base de datos PostgreSQL ────────────────────────────────────────────────
+DATABASE_URL = os.getenv("DATABASE_URL")
 SERVER_START_TIME = time.time()
-cache = {"data": None, "timestamp": 0}  # Caché simple con TTL
-CACHE_TTL = 600  # 10 minutos en segundos
-historial = []  # Lista en memoria para el historial
+CACHE_TTL = 600  # 10 minutos
 MAX_HISTORIAL = 20
+
+pool: asyncpg.Pool | None = None
+
+async def get_pool():
+    """Obtiene o crea el pool de conexiones a PostgreSQL"""
+    global pool
+    if pool is None:
+        pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=5)
+        # Crear tablas si no existen
+        async with pool.acquire() as conn:
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS cache (
+                    key VARCHAR(100) PRIMARY KEY,
+                    data JSONB NOT NULL,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                )
+            """)
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS historial (
+                    id SERIAL PRIMARY KEY,
+                    fecha VARCHAR(50) NOT NULL,
+                    dolar_bcv DOUBLE PRECISION NOT NULL,
+                    usdt_binance DOUBLE PRECISION NOT NULL,
+                    promedio DOUBLE PRECISION NOT NULL,
+                    brecha VARCHAR(20) NOT NULL,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                )
+            """)
+    return pool
 
 # Colores para la terminal
 GREEN = "\033[92m"
@@ -41,6 +71,62 @@ RED = "\033[91m"
 RESET = "\033[0m"
 
 
+# ── Funciones de caché (PostgreSQL) ─────────────────────────────────────────
+async def get_cache(key: str):
+    """Obtiene datos del caché si no han expirado"""
+    db = await get_pool()
+    async with db.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT data, created_at FROM cache WHERE key = $1", key
+        )
+        if row:
+            age = (datetime.now(timezone.utc) - row["created_at"]).total_seconds()
+            if age < CACHE_TTL:
+                return row["data"]
+            # Caché expirado, eliminarlo
+            await conn.execute("DELETE FROM cache WHERE key = $1", key)
+    return None
+
+
+async def set_cache(key: str, data: dict):
+    """Guarda datos en el caché (upsert)"""
+    db = await get_pool()
+    async with db.acquire() as conn:
+        await conn.execute("""
+            INSERT INTO cache (key, data, created_at)
+            VALUES ($1, $2::jsonb, NOW())
+            ON CONFLICT (key) DO UPDATE SET data = $2::jsonb, created_at = NOW()
+        """, key, json.dumps(data))
+
+
+async def add_historial(data: dict):
+    """Agrega un registro al historial y mantiene máximo 20"""
+    db = await get_pool()
+    async with db.acquire() as conn:
+        await conn.execute("""
+            INSERT INTO historial (fecha, dolar_bcv, usdt_binance, promedio, brecha)
+            VALUES ($1, $2, $3, $4, $5)
+        """, data["fecha"], data["dolar_bcv"], data["usdt_binance"],
+            data["promedio"], data["brecha"])
+        # Mantener solo los últimos MAX_HISTORIAL registros
+        await conn.execute(f"""
+            DELETE FROM historial WHERE id NOT IN (
+                SELECT id FROM historial ORDER BY created_at DESC LIMIT {MAX_HISTORIAL}
+            )
+        """)
+
+
+async def get_historial_data():
+    """Obtiene todos los registros del historial"""
+    db = await get_pool()
+    async with db.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT fecha, dolar_bcv, usdt_binance, promedio, brecha FROM historial ORDER BY created_at DESC"
+        )
+        return [dict(row) for row in rows]
+
+
+# ── Rutas ───────────────────────────────────────────────────────────────────
 @app.get("/")
 async def root():
     return {"message": "Bienvenido a Bolix API", "status": "online"}
@@ -53,31 +139,38 @@ async def api_status():
     minutes, seconds = divmod(remainder, 60)
     uptime_str = f"{hours}h {minutes}m {seconds}s"
 
-    cache_age = int(time.time() - cache["timestamp"]) if cache["data"] else -1
-    cache_remaining = max(0, CACHE_TTL - cache_age) if cache["data"] else 0
+    # Verificar estado de la DB
+    db_ok = False
+    try:
+        db = await get_pool()
+        async with db.acquire() as conn:
+            await conn.fetchval("SELECT 1")
+        db_ok = True
+    except Exception:
+        pass
 
     return {
         "version": app.version,
         "status": "online",
         "fuentes": ["BCV", "Binance P2P"],
-        "cache_ttl": f"{cache_remaining}s" if cache_remaining > 0 else "Sin caché activo",
-        "redis": "No utilizado (memoria local)",
+        "cache_ttl": f"{CACHE_TTL}s",
+        "redis": "PostgreSQL " + ("conectado ✅" if db_ok else "desconectado ❌"),
         "uptime": uptime_str,
     }
 
 
 @app.get("/tasa")
 async def tasa_dolar():
-    global cache
+    cache_key = "tasas_bolix"
 
     try:
-        # 1. Verificar caché en memoria
-        now = time.time()
-        if cache["data"] and (now - cache["timestamp"]) < CACHE_TTL:
-            print(f"{GREEN}[CACHE HIT]{RESET} Sirviendo desde memoria...")
-            return cache["data"]
+        # 1. Intentar obtener datos del caché
+        cached = await get_cache(cache_key)
+        if cached:
+            print(f"{GREEN}[CACHE HIT]{RESET} Sirviendo desde PostgreSQL...")
+            return cached
 
-        # 2. Scraping real
+        # 2. Si no hay caché, scraping real
         print(f"{BLUE}[FETCHING]{RESET} Obteniendo datos reales de BCV y Binance...")
         bcv_data = await get_bcv()
         binance_data = await get_binance()
@@ -98,7 +191,9 @@ async def tasa_dolar():
             "estatus_mercado": estatus
         }
 
-        # 3. Guardar en historial (en memoria)
+        # 3. Guardar en caché y historial (PostgreSQL)
+        await set_cache(cache_key, resultado)
+
         data_historial = {
             "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "dolar_bcv": bcv_usd,
@@ -106,28 +201,35 @@ async def tasa_dolar():
             "promedio": promedio,
             "brecha": f"{brecha}%"
         }
-        historial.insert(0, data_historial)
-        if len(historial) > MAX_HISTORIAL:
-            historial.pop()
+        await add_historial(data_historial)
 
-        # 4. Guardar en caché
-        cache = {"data": resultado, "timestamp": now}
-
-        print(f"{GREEN}[OK]{RESET} Tasas obtenidas: BCV={bcv_usd}, Binance={binance_usd}")
+        print(f"{GREEN}[OK]{RESET} Tasas: BCV={bcv_usd}, Binance={binance_usd}")
         return resultado
 
     except Exception as e:
         print(f"{RED}[ERROR]{RESET} Falló el scraping: {e}")
-        if cache["data"]:
-            print(f"{BLUE}[BACKUP]{RESET} Sirviendo último valor conocido.")
-            return cache["data"]
+        # Intentar servir desde caché aunque esté expirado
+        try:
+            db = await get_pool()
+            async with db.acquire() as conn:
+                row = await conn.fetchrow("SELECT data FROM cache WHERE key = $1", cache_key)
+                if row:
+                    print(f"{BLUE}[BACKUP]{RESET} Sirviendo último valor conocido.")
+                    return row["data"]
+        except Exception:
+            pass
         return {"error": "Fuentes caídas y no hay backup disponible"}
 
 
 @app.get("/historial")
 async def get_historial():
-    return {
-        "status": "success",
-        "count": len(historial),
-        "data": historial
-    }
+    try:
+        data = await get_historial_data()
+        return {
+            "status": "success",
+            "count": len(data),
+            "data": data
+        }
+    except Exception as e:
+        print(f"{RED}[ERROR HISTORIAL]{RESET} {e}")
+        return {"status": "error", "count": 0, "data": [], "error": str(e)}
