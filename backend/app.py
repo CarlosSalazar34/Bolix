@@ -1,7 +1,7 @@
 import os
 import json
 from dotenv import load_dotenv
-from fastapi import FastAPI, Header, HTTPException, Depends
+from fastapi import FastAPI, Depends
 from redis import asyncio as redis
 from fastapi.middleware.cors import CORSMiddleware
 
