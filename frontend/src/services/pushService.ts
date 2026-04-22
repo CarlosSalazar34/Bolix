@@ -1,4 +1,6 @@
-import { API_URL } from './api';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://bolix-backend.vercel.app'
+
 
 const VAPID_PUBLIC_KEY = 'BJNCEv7cSow9zuxhTwdAE-rEFhrUAQOyOPMz-FgaOp8kybLh7f4rlnHiQopc9iPkGPMD8TlM766nno-6_O7oV6I';
 
@@ -30,7 +32,7 @@ export async function registerPushNotifications() {
 
   // Register service worker
   const registration = await navigator.serviceWorker.register('/sw.js');
-  
+
   // Wait for service worker to be ready
   await navigator.serviceWorker.ready;
 
