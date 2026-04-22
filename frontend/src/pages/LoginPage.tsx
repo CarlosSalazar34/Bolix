@@ -78,7 +78,7 @@ export default function LoginPage({ onNavigateToRegister }: { onNavigateToRegist
           </button>
         </form>
 
-        <p className="mt-8 text-center text-sm text-zinc-500">
+        <p className="mt-10 text-center text-sm text-zinc-500">
           ¿No tienes una cuenta?{' '}
           <button onClick={onNavigateToRegister} className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
             Regístrate

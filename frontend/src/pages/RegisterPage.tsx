@@ -94,7 +94,7 @@ export default function RegisterPage({ onNavigateToLogin }: { onNavigateToLogin:
           </button>
         </form>
 
-        <p className="mt-8 text-center text-sm text-zinc-500">
+        <p className="mt-10 text-center text-sm text-zinc-500">
           ¿Ya tienes una cuenta?{' '}
           <button onClick={onNavigateToLogin} className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
             Inicia Sesión
