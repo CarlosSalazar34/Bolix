@@ -58,7 +58,7 @@ export default function HomePage() {
         label: 'Dólar BCV',
         currency: 'USD',
         value: tasas.dolar_bcv.toFixed(2),
-        change: tasas.estatus_mercado.includes('Estable') ? 'Estable' : 'Alerta',
+        change: (tasas.estatus_mercado || '').includes('Estable') ? 'Estable' : 'Alerta',
         up: true,
         source: 'BCV Oficial',
         gradient: 'from-emerald-500/20 to-emerald-900/10',
@@ -141,7 +141,7 @@ export default function HomePage() {
         <HeroCard
           promedio={tasas.promedio.toFixed(2)}
           brecha={tasas.brecha_porcentual.replace('%', '')}
-          estatus={tasas.estatus_mercado.includes('Estable') ? '✅ Estable' : '⚠️ Alerta'}
+          estatus={(tasas.estatus_mercado || '').includes('Estable') ? '✅ Estable' : '⚠️ Alerta'}
           ultimaActualizacion={tiempoRelativo()}
         />
       )}

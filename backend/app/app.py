@@ -64,6 +64,7 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
                     "usdt_binance": float(cache_entry.data.get('usdt_binance')),
                     "promedio": float(cache_entry.data.get('promedio')),
                     "brecha_porcentual": cache_entry.data.get('brecha_porcentual'),
+                    "estatus_mercado": cache_entry.data.get('estatus_mercado', 'Normal'),
                     "fecha": cache_entry.created_at.strftime("%Y-%m-%d %H:%M:%S"),
                     "source": "cache"
                 }
@@ -129,6 +130,7 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
                     "usdt_binance": float(last_entry.usdt_binance),
                     "promedio": float(last_entry.promedio),
                     "brecha_porcentual": last_entry.brecha,
+                    "estatus_mercado": "Normal",
                     "fecha": last_entry.fecha,
                     "source": "fallback_historial"
                 }
