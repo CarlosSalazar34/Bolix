@@ -21,20 +21,6 @@ export default function AlertasPage() {
     }
   }
 
-  const handleTestNotification = async () => {
-    try {
-      setLoading(true)
-      setMessage('')
-      await testPushNotification()
-      setMessage('Notificación de prueba enviada')
-    } catch (error: any) {
-      console.error(error)
-      setMessage('Error: ' + error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <div className="flex flex-col gap-5 pb-4">
       <div>
@@ -54,14 +40,6 @@ export default function AlertasPage() {
             className="px-6 py-2.5 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
           >
             {loading ? 'Procesando...' : 'Activar Notificaciones'}
-          </button>
-
-          <button 
-            onClick={handleTestNotification}
-            disabled={loading}
-            className="px-6 py-2.5 rounded-xl bg-zinc-800 text-white font-medium hover:bg-zinc-700 border border-zinc-700 transition-colors disabled:opacity-50"
-          >
-            Probar Notificación
           </button>
         </div>
 
