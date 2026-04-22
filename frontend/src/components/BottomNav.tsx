@@ -35,6 +35,7 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
           )
         })}
       </div>
+      <div className='mt-5'></div>
     </nav>
   )
 }

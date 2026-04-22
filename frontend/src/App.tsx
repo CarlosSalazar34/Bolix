@@ -61,7 +61,7 @@ function AppContent() {
       {/* FAB — Botón flotante calculadora */}
       <button
         onClick={() => setSheetOpen(true)}
-        className="fixed right-5 bottom-24 z-30 w-14 h-14 rounded-full
+        className="fixed right-5 bottom-28 z-30 w-14 h-14 rounded-full
           bg-gradient-to-br from-emerald-500 to-green-600
           shadow-[0_4px_24px_rgba(16,185,129,0.4)]
           flex items-center justify-center
