@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { IconBell } from '../components/icons'
-import { registerPushNotifications, sendSubscriptionToBackend, testPushNotification } from '../services/pushService'
+import { registerPushNotifications, sendSubscriptionToBackend } from '../services/pushService'
 
 export default function AlertasPage() {
   const [loading, setLoading] = useState(false)
