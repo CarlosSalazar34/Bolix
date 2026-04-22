@@ -27,7 +27,7 @@ elif DATABASE_URL and DATABASE_URL.startswith("postgresql://"):
 VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
 VAPID_CLAIM_EMAIL = os.getenv("VAPID_CLAIM_EMAIL")
 
-async def send_notification_to_user(username: str, title: str, body: str):
+async def send_notification_to_all(title: str, body: str, username: str = None):
     if not VAPID_PRIVATE_KEY or not VAPID_CLAIM_EMAIL:
         print("❌ Error: Faltan las claves VAPID en el archivo .env")
         return
@@ -36,25 +36,33 @@ async def send_notification_to_user(username: str, title: str, body: str):
     AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     async with AsyncSessionLocal() as session:
-        # Buscar usuario
-        query = select(User).where(User.username == username)
-        result = await session.execute(query)
-        user = result.scalars().first()
+        if username:
+            # Buscar usuario específico
+            query = select(User).where(User.username == username)
+            result = await session.execute(query)
+            user = result.scalars().first()
 
-        if not user:
-            print(f"❌ Error: Usuario '{username}' no encontrado en la base de datos.")
-            return
+            if not user:
+                print(f"❌ Error: Usuario '{username}' no encontrado en la base de datos.")
+                return
 
-        # Buscar suscripciones del usuario
-        sub_query = select(PushSubscription).where(PushSubscription.user_id == user.id)
+            sub_query = select(PushSubscription).where(PushSubscription.user_id == user.id)
+        else:
+            # Seleccionar todas las suscripciones de todos los usuarios
+            sub_query = select(PushSubscription)
+
         sub_result = await session.execute(sub_query)
         subscriptions = sub_result.scalars().all()
 
         if not subscriptions:
-            print(f"⚠️ El usuario '{username}' no tiene notificaciones activadas.")
+            if username:
+                print(f"⚠️ El usuario '{username}' no tiene notificaciones activadas.")
+            else:
+                print(f"⚠️ No hay usuarios con notificaciones activadas en la base de datos.")
             return
 
-        print(f"Enviando notificación a {len(subscriptions)} dispositivos del usuario '{username}'...")
+        destino = f"al usuario '{username}'" if username else "a TODOS los usuarios"
+        print(f"Enviando notificación a {len(subscriptions)} dispositivos ({destino})...")
         
         payload = json.dumps({
             "title": title,
@@ -92,11 +100,11 @@ async def send_notification_to_user(username: str, title: str, body: str):
         print(f"✅ Notificación enviada con éxito a {success_count} dispositivos.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Enviar notificación Web Push a un usuario de Bolix.")
-    parser.add_argument("username", type=str, help="Nombre de usuario destino")
+    parser = argparse.ArgumentParser(description="Enviar notificación Web Push a todos los usuarios o a uno específico.")
+    parser.add_argument("--username", type=str, help="Nombre de usuario destino (opcional). Si no se envía, llegará a todos los usuarios.")
     parser.add_argument("--title", type=str, default="Aviso de Bolix", help="Título de la notificación")
     parser.add_argument("--body", type=str, required=True, help="Cuerpo/Mensaje de la notificación")
     
     args = parser.parse_args()
     
-    asyncio.run(send_notification_to_user(args.username, args.title, args.body))
+    asyncio.run(send_notification_to_all(args.title, args.body, args.username))
