@@ -76,20 +76,3 @@ export async function sendSubscriptionToBackend(subscription: PushSubscription) 
   return await response.json();
 }
 
-export async function testPushNotification() {
-  const token = localStorage.getItem('bolix_token');
-  if (!token) throw new Error('Not authenticated');
-
-  const response = await fetch(`${API_URL}/api/notifications/test`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to send test notification');
-  }
-
-  return await response.json();
-}
