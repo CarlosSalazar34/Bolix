@@ -77,6 +77,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
         {/* Selector de moneda */}
         <div>
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2">Moneda</p>
+          <div className='mt-3'></div>
           <div className="flex gap-2">
             {CURRENCIES.map((c) => {
               const active = selected === c.id

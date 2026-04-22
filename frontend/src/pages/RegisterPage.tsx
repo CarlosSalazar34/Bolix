@@ -93,7 +93,7 @@ export default function RegisterPage({ onNavigateToLogin }: { onNavigateToLogin:
             {loading ? 'Registrando...' : 'Registrarse'}
           </button>
         </form>
-
+        <div className='mt-3'></div>
         <p className="mt-10 text-center text-sm text-zinc-500">
           ¿Ya tienes una cuenta?{' '}
           <button onClick={onNavigateToLogin} className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
