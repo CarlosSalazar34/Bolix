@@ -12,7 +12,7 @@ from app.database import engine, Base, get_db
 from app.models.history import History
 from app.models.cache import Cache 
 from functions.dolar import get_bcv, get_binance
-from middleware.auth import verify_token
+from middleware.auth import verify_token, get_current_user
 from app.routes import auth, chatbot, trades  # <--- Agregado trades
 
 load_dotenv()
@@ -48,7 +48,7 @@ async def on_startup():
 async def root():
     return {"app": "Bolix", "dev": "Carlos Salazar and Gabriel Mejia", "status": "online"}
 
-@app.get("/tasa", dependencies=[Depends(verify_token)])
+@app.get("/tasa", dependencies=[Depends(get_current_user)])
 async def tasa_dolar(db: AsyncSession = Depends(get_db)):
     try:
         result = await db.execute(select(Cache).where(Cache.key == "tasas_bolix"))
@@ -138,6 +138,37 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
         print(f"{RED}[ERROR]{RESET} {e}")
         await db.rollback()
         raise HTTPException(status_code=500, detail="Error en servidor de tasas")
+
+@app.get("/historial", dependencies=[Depends(get_current_user)])
+async def get_historial(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(History).order_by(History.id.desc()).limit(20))
+    historial = result.scalars().all()
+    data = []
+    for h in historial:
+        data.append({
+            "fecha": h.fecha,
+            "dolar_bcv": float(h.dolar_bcv),
+            "usdt_binance": float(h.usdt_binance),
+            "promedio": float(h.promedio),
+            "brecha": h.brecha
+        })
+    return {
+        "status": "success",
+        "count": len(data),
+        "data": data
+    }
+
+@app.get("/status", dependencies=[Depends(get_current_user)])
+async def server_status():
+    return {
+        "version": "1.2.6",
+        "status": "online",
+        "fuentes": ["BCV", "Binance P2P"],
+        "cache_ttl": "10 min",
+        "redis": "desconectado",
+        "uptime": "99.9%"
+    }
+
 
 # ── RUTAS EXTERNAS ────────────────────────────────────────────────────────
 app.include_router(auth.router, prefix="/auth", tags=["Seguridad"])
