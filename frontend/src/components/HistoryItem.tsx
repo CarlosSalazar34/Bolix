@@ -19,7 +19,7 @@ export default function HistoryItem({ fecha, dolar_bcv, binance, promedio, brech
       // Asumimos que la fecha viene en UTC desde el backend
       const date = new Date(fechaString.replace(' ', 'T') + 'Z')
       if (isNaN(date.getTime())) return fechaString
-      
+
       const pad = (n: number) => n.toString().padStart(2, '0')
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
     } catch (e) {
