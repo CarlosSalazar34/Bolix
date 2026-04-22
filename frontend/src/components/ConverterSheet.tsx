@@ -73,66 +73,6 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
   return (
     <BottomSheet open={open} onClose={onClose} title="Calculadora">
       <div className="flex flex-col gap-5 pb-4">
-
-        {/* Selector de moneda */}
-        <div>
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2">Moneda</p>
-          <div className='mt-3'></div>
-          <div className="flex gap-2">
-            {CURRENCIES.map((c) => {
-              const active = selected === c.id
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setSelected(c.id)}
-                  className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl border transition-all duration-200
-                    ${active
-                      ? 'bg-emerald-500/15 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)]'
-                      : 'bg-zinc-800/60 border-zinc-700/50 hover:border-zinc-600'
-                    }`}
-                >
-                  <span className="text-xl">{c.icon}</span>
-                  <span className={`text-xs font-semibold ${active ? 'text-emerald-400' : 'text-zinc-300'}`}>
-                    {c.id}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Tasa actual */}
-        {tasas && (
-          <div className="rounded-xl bg-zinc-800/50 border border-zinc-700/40 px-4 py-3 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-400">Tasa actual</p>
-              <p className="text-white font-bold text-lg">Bs. {rate.toFixed(2)}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-zinc-400">{currentOption.sublabel}</p>
-              <p className={`text-xs font-medium mt-0.5 px-2 py-0.5 rounded-full inline-block
-                ${tasas.estatus_mercado.includes('Estable')
-                  ? 'bg-emerald-500/20 text-emerald-400'
-                  : 'bg-yellow-500/20 text-yellow-400'
-                }`}>
-                {tasas.estatus_mercado.includes('Estable') ? '✅ Estable' : '⚠️ Alerta'}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Dirección de conversión */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setDirection(direction === 'toBs' ? 'fromBs' : 'toBs')}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/50 hover:border-emerald-500/30 transition-all"
-          >
-            <span className="text-zinc-300 text-sm font-medium">{fromLabel}</span>
-            <span className="text-emerald-400 text-lg">⇄</span>
-            <span className="text-zinc-300 text-sm font-medium">{toLabel}</span>
-          </button>
-        </div>
-
         {/* Input de monto */}
         <div>
           <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2 block">
@@ -195,9 +135,69 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
                 </button>
               ))}
             </div>
-            <div className="mt-3"></div>
           </div>
         )}
+
+        {/* Selector de moneda */}
+        <div>
+          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2">Moneda</p>
+          <div className='mt-3'></div>
+          <div className="flex gap-2">
+            {CURRENCIES.map((c) => {
+              const active = selected === c.id
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setSelected(c.id)}
+                  className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl border transition-all duration-200
+                    ${active
+                      ? 'bg-emerald-500/15 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)]'
+                      : 'bg-zinc-800/60 border-zinc-700/50 hover:border-zinc-600'
+                    }`}
+                >
+                  <span className="text-xl">{c.icon}</span>
+                  <span className={`text-xs font-semibold ${active ? 'text-emerald-400' : 'text-zinc-300'}`}>
+                    {c.id}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Tasa actual */}
+        {tasas && (
+          <div className="rounded-xl bg-zinc-800/50 border border-zinc-700/40 px-4 py-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-zinc-400">Tasa actual</p>
+              <p className="text-white font-bold text-lg">Bs. {rate.toFixed(2)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-zinc-400">{currentOption.sublabel}</p>
+              <p className={`text-xs font-medium mt-0.5 px-2 py-0.5 rounded-full inline-block
+                ${tasas.estatus_mercado.includes('Estable')
+                  ? 'bg-emerald-500/20 text-emerald-400'
+                  : 'bg-yellow-500/20 text-yellow-400'
+                }`}>
+                {tasas.estatus_mercado.includes('Estable') ? '✅ Estable' : '⚠️ Alerta'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Dirección de conversión */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setDirection(direction === 'toBs' ? 'fromBs' : 'toBs')}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/50 hover:border-emerald-500/30 transition-all"
+          >
+            <span className="text-zinc-300 text-sm font-medium">{fromLabel}</span>
+            <span className="text-emerald-400 text-lg">⇄</span>
+            <span className="text-zinc-300 text-sm font-medium">{toLabel}</span>
+          </button>
+        </div>
+
+
       </div>
     </BottomSheet>
   )
