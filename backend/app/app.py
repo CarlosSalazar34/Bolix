@@ -120,7 +120,7 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
             print(f"{RED}[SCRAPING FAILED]{RESET} Usando último historial disponible: {scrap_error}")
             # Fallback: Buscar el último registro exitoso en historial
             fallback_result = await db.execute(select(History).order_by(History.id.desc()).limit(1))
-            last_entry = fallback_result.scalar_one_of_none()
+            last_entry = fallback_result.scalars().first()
             
             if last_entry:
                 return {

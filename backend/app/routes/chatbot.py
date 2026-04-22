@@ -16,7 +16,7 @@ async def chat_logic(mensaje: str, current_user_name: str = Depends(get_current_
     
     # Buscar usuario
     result = await db.execute(select(User).where(User.username == current_user_name))
-    user = result.scalar_one_of_none()
+    user = result.scalars().first()
     
     if "compre" in mensaje_clean or "compré" in mensaje_clean:
         numeros = re.findall(r"[-+]?\d*\.\d+|\d+", mensaje_clean)
@@ -34,7 +34,7 @@ async def chat_logic(mensaje: str, current_user_name: str = Depends(get_current_
     if any(x in mensaje_clean for x in ["ganando", "perdiendo", "estatus"]):
         query = select(Trade).where(Trade.user_id == user.id, Trade.tipo == "COMPRA").order_by(Trade.fecha.desc())
         res_trade = await db.execute(query)
-        u_compra = res_trade.scalar_one_of_none()
+        u_compra = res_trade.scalars().first()
         
         if not u_compra: return {"respuesta": "No tienes compras registradas."}
         

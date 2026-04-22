@@ -50,7 +50,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         (User.email == user_data.email) | (User.username == user_data.username)
     )
     result = await db.execute(query)
-    if result.scalar_one_of_none():
+    if result.scalars().first():
         raise HTTPException(
             status_code=400, 
             detail="El usuario o el correo ya existen en Bolix."
@@ -84,7 +84,7 @@ async def login(
     # 1. Buscar al usuario
     query = select(User).where(User.username == form_data.username)
     result = await db.execute(query)
-    user = result.scalar_one_of_none()
+    user = result.scalars().first()
     
     # 2. Validar contraseña
     if not user or not verify_password(form_data.password, user.hashed_password):
