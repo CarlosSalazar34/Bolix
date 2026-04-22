@@ -195,6 +195,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
                 </button>
               ))}
             </div>
+            <div className="mt-3"></div>
           </div>
         )}
       </div>
