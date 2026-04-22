@@ -158,7 +158,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
         <div className={`rounded-2xl overflow-hidden transition-all duration-300 ${result ? 'opacity-100' : 'opacity-40'}`}>
           <div className="bg-gradient-to-br from-emerald-600 to-green-800 p-5 relative">
             <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/5 -translate-y-8 translate-x-8" />
-            <p className="text-emerald-100 text-sm font-medium">Resultado</p>
+            <p className="text-emerald-100 text-sm font-medium">{selected === "USD" ? "Cambio en USD" : selected === "EUR" ? "Cambio en EUR" : selected === "USDT" ? "Cambio en USDT" : "Cambio en Bs"}</p>
             <div className="flex items-end gap-2 mt-1">
               <span className="text-4xl font-bold text-white tracking-tight">
                 {result ? `${toLabel === 'Bs' ? 'Bs.' : ''} ${result}` : '—'}
@@ -179,6 +179,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
         {direction === 'toBs' && (
           <div>
             <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2">Rápido</p>
+            <div className='mb-3'></div>
             <div className="grid grid-cols-4 gap-2">
               {[1, 5, 10, 20, 50, 100, 500, 1000].map((v) => (
                 <button
