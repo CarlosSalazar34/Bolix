@@ -186,7 +186,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
         )}
 
         {/* Dirección de conversión */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-10">
           <button
             onClick={() => setDirection(direction === 'toBs' ? 'fromBs' : 'toBs')}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/50 hover:border-emerald-500/30 transition-all"
