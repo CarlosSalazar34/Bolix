@@ -88,7 +88,9 @@ export async function testPushNotification() {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to send test notification');
+    const errorText = await response.text();
+    console.error("Detalle del error del servidor:", errorText);
+    throw new Error('Failed to send test notification: ' + errorText);
   }
 
   return await response.json();
