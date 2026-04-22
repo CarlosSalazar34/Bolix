@@ -23,8 +23,9 @@ async def verify_token(x_api_key: str = Header(None)):
             status_code=403, 
             detail="No tienes permiso")
         
-async def get_current_user(token: str = Header(None)):
+async def get_current_user(authorization: str = Header(None)):
     """Extrae el usuario del token JWT enviado por la PWA"""
+    token = authorization
     if not token:
         raise HTTPException(status_code=401, detail="Falta el token de sesión")
     
