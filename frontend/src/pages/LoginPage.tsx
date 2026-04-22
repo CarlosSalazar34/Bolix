@@ -1,0 +1,90 @@
+import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
+
+export default function LoginPage({ onNavigateToRegister }: { onNavigateToRegister: () => void }) {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const { login } = useAuth()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      await login(username, password)
+    } catch (err: any) {
+      setError(err.message || 'Error al iniciar sesión')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full w-full px-6">
+      <div className="w-full max-w-sm bg-zinc-900 rounded-3xl p-8 border border-zinc-800 shadow-2xl">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">
+            Bolix
+          </h1>
+          <p className="text-zinc-400 mt-2 text-sm">Inicia sesión para continuar</p>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <label className="block text-zinc-400 text-xs uppercase tracking-wider mb-2" htmlFor="username">
+              Usuario
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
+              placeholder="tu_usuario"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-zinc-400 text-xs uppercase tracking-wider mb-2" htmlFor="password">
+              Contraseña
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-4 w-full bg-gradient-to-r from-emerald-500 to-green-600 text-white font-medium rounded-xl py-3 shadow-[0_4px_20px_rgba(16,185,129,0.3)] hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100"
+          >
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+        </form>
+
+        <p className="mt-8 text-center text-sm text-zinc-500">
+          ¿No tienes una cuenta?{' '}
+          <button onClick={onNavigateToRegister} className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
+            Regístrate
+          </button>
+        </p>
+      </div>
+    </div>
+  )
+}

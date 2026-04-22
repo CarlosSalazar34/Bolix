@@ -1,7 +1,11 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'https://bolix-backend.vercel.app'
 
-const headers = {
-  'Content-Type': 'application/json',
+function getHeaders() {
+  const token = localStorage.getItem('bolix_token')
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  }
 }
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -41,7 +45,7 @@ export interface StatusResponse {
 
 // ── API Calls ──────────────────────────────────────────────────────────────
 export async function fetchTasas(): Promise<TasaResponse> {
-  const res = await fetch(`${API_BASE}/tasa`, { headers })
+  const res = await fetch(`${API_BASE}/tasa`, { headers: getHeaders() })
   if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
   const data = await res.json()
   if (data.error) throw new Error(data.error)
@@ -50,13 +54,13 @@ export async function fetchTasas(): Promise<TasaResponse> {
 }
 
 export async function fetchHistorial(): Promise<HistorialResponse> {
-  const res = await fetch(`${API_BASE}/historial`, { headers })
+  const res = await fetch(`${API_BASE}/historial`, { headers: getHeaders() })
   if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
   return res.json()
 }
 
 export async function fetchStatus(): Promise<StatusResponse> {
-  const res = await fetch(`${API_BASE}/status`, { headers })
+  const res = await fetch(`${API_BASE}/status`, { headers: getHeaders() })
   if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
   return res.json()
 }

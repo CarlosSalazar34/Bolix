@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { fetchStatus } from '../services/api'
 import type { StatusResponse } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 export default function PerfilPage() {
   const [status, setStatus] = useState<StatusResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { user, logout } = useAuth()
 
   useEffect(() => {
     const load = async () => {
@@ -45,8 +47,15 @@ export default function PerfilPage() {
     <div className="flex flex-col gap-5 pb-4">
       <div>
         <h1 className="text-2xl font-bold text-white">Perfil</h1>
-        <p className="text-zinc-400 text-sm mt-1">Estado del servidor en tiempo real</p>
+        <p className="text-zinc-400 text-sm mt-1">Sesión iniciada como <span className="text-emerald-400 font-semibold">{user?.username}</span></p>
       </div>
+
+      <button
+        onClick={logout}
+        className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 py-3 rounded-xl font-medium transition-colors"
+      >
+        Cerrar Sesión
+      </button>
 
       {error && (
         <div className="rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-red-400 text-sm">

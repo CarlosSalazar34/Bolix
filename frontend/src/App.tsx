@@ -8,25 +8,45 @@ import PerfilPage from './pages/PerfilPage'
 import ConverterSheet from './components/ConverterSheet'
 import { fetchTasas } from './services/api'
 import type { TasaResponse } from './services/api'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 
-export default function App() {
+function AppContent() {
+  const { isAuthenticated } = useAuth()
+  const [authView, setAuthView] = useState<'login' | 'register'>('login')
+
   const [tab, setTab] = useState<Tab>('home')
   const [sheetOpen, setSheetOpen] = useState(false)
   const [tasas, setTasas] = useState<TasaResponse | null>(null)
 
   // Cargar tasas al nivel de App para compartir con el ConverterSheet
   const loadTasas = useCallback(async () => {
+    if (!isAuthenticated) return
+
     try {
       const data = await fetchTasas()
       setTasas(data)
     } catch {
       // HomePage maneja su propio error, aquí solo para el sheet
     }
-  }, [])
+  }, [isAuthenticated])
 
   useEffect(() => {
     loadTasas()
   }, [loadTasas])
+
+  if (!isAuthenticated) {
+    return (
+      <div className="h-dvh bg-zinc-950 flex flex-col relative overflow-hidden">
+        {authView === 'login' ? (
+          <LoginPage onNavigateToRegister={() => setAuthView('register')} />
+        ) : (
+          <RegisterPage onNavigateToLogin={() => setAuthView('login')} />
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="h-dvh bg-zinc-950 flex flex-col relative">
@@ -64,5 +84,13 @@ export default function App() {
       {/* Bottom Nav — always pinned at the bottom */}
       <BottomNav activeTab={tab} onTabChange={setTab} />
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
