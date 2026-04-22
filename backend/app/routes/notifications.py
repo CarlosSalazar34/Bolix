@@ -14,8 +14,7 @@ from middleware.auth import get_current_user
 
 router = APIRouter()
 
-VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
-VAPID_CLAIM_EMAIL = os.getenv("VAPID_CLAIM_EMAIL")
+
 
 class KeysModel(BaseModel):
     p256dh: str
@@ -94,6 +93,12 @@ async def test_notification(
         "icon": "/logo.png"
     })
 
+    vapid_priv = os.getenv("VAPID_PRIVATE_KEY")
+    vapid_email = os.getenv("VAPID_CLAIM_EMAIL")
+    
+    if not vapid_priv or not vapid_email:
+        raise HTTPException(status_code=500, detail="VAPID keys not configured on server")
+
     for sub in subscriptions:
         try:
             sub_info = {
@@ -106,15 +111,17 @@ async def test_notification(
             webpush(
                 subscription_info=sub_info,
                 data=payload,
-                vapid_private_key=VAPID_PRIVATE_KEY,
-                vapid_claims={"sub": VAPID_CLAIM_EMAIL}
+                vapid_private_key=vapid_priv,
+                vapid_claims={"sub": vapid_email}
             )
             success_count += 1
         except WebPushException as ex:
-            # If subscription is expired or invalid, we could remove it here
             if ex.response and ex.response.status_code in [404, 410]:
                 await db.delete(sub)
                 await db.commit()
             print(f"WebPush Error: {repr(ex)}")
+        except Exception as e:
+            print(f"Generic Error: {repr(e)}")
+            raise HTTPException(status_code=500, detail=f"WebPush error: {repr(e)}")
 
     return {"message": f"Notifications sent successfully to {success_count} devices"}
