@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from passlib.context import CryptContext
+import bcrypt
+
 from jose import JWTError, jwt
 
 # Importes de tu estructura local
@@ -22,14 +23,21 @@ SECRET_KEY = os.getenv("JWT_SECRET", "clave_maestra_bolix_2026_pro")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 horas
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ── FUNCIONES INTERNAS ──────────────────────────────────────────────────────
 def get_password_hash(password: str):
-    return pwd_context.hash(password)
+    pwd_bytes = password.encode('utf-8')
+    # bcrypt limita a 72 bytes
+    if len(pwd_bytes) > 72:
+        pwd_bytes = pwd_bytes[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(pwd_bytes, salt).decode('utf-8')
 
 def verify_password(plain_password: str, hashed_password: str):
-    return pwd_context.verify(plain_password, hashed_password)
+    pwd_bytes = plain_password.encode('utf-8')
+    if len(pwd_bytes) > 72:
+        pwd_bytes = pwd_bytes[:72]
+    return bcrypt.checkpw(pwd_bytes, hashed_password.encode('utf-8'))
 
 def create_access_token(data: dict):
     to_encode = data.copy()
