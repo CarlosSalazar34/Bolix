@@ -1,7 +1,12 @@
 import os
-from fastapi import Header, HTTPException, status
+from fastapi import Header, HTTPException, status, Depends
 from jose import JWTError, jwt
 from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
+from app.database import get_db
+from app.models.user import User
 
 load_dotenv()
 API_KEY_BOLIX = os.getenv("API_KEY_BOLIX")
@@ -23,7 +28,7 @@ async def verify_token(x_api_key: str = Header(None)):
             status_code=403, 
             detail="No tienes permiso")
         
-async def get_current_user(authorization: str = Header(None)):
+async def get_current_user(authorization: str = Header(None), db: AsyncSession = Depends(get_db)):
     """Extrae el usuario del token JWT enviado por la PWA"""
     token = authorization
     if not token:
@@ -40,6 +45,13 @@ async def get_current_user(authorization: str = Header(None)):
         if username is None:
             raise HTTPException(status_code=401, detail="Token inválido")
             
-        return username
+        # Buscar el usuario en la base de datos
+        result = await db.execute(select(User).where(User.username == username))
+        user = result.scalars().first()
+        
+        if user is None:
+            raise HTTPException(status_code=401, detail="Usuario no encontrado")
+            
+        return user
     except JWTError:
         raise HTTPException(status_code=401, detail="Sesión expirada o token corrupto")
