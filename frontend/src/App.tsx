@@ -61,20 +61,23 @@ function AppContent() {
       </main>
 
       {/* FAB — Botón flotante calculadora */}
-      <button
-        onClick={() => setSheetOpen(true)}
-        className="fixed right-5 bottom-28 z-30 w-14 h-14 rounded-full
-          bg-gradient-to-br from-emerald-500 to-green-600
-          shadow-[0_4px_24px_rgba(16,185,129,0.4)]
-          flex items-center justify-center
-          hover:scale-110 active:scale-95
-          transition-all duration-200"
-        aria-label="Abrir calculadora"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6">
-          <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zM7 7h2v2H7V7zm0 4h2v2H7v-2zm0 4h2v2H7v-2zm4 2v-2h2v2h-2zm0-4v-2h2v2h-2zm4 4v-2h2v2h-2zm0-4v-2h2v2h-2zm0-4V7h2v2h-2z" />
-        </svg>
-      </button>
+      {tab !== 'chatbot' && (
+        <button
+          onClick={() => setSheetOpen(true)}
+          className="fixed right-5 bottom-30 z-30 w-14 h-14 rounded-full
+            bg-gradient-to-br from-emerald-500 to-green-600
+            shadow-[0_4px_24px_rgba(16,185,129,0.4)]
+            flex items-center justify-center
+            hover:scale-110 active:scale-95
+            transition-all duration-200"
+          aria-label="Abrir calculadora"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6">
+            <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zM7 7h2v2H7V7zm0 4h2v2H7v-2zm0 4h2v2H7v-2zm4 2v-2h2v2h-2zm0-4v-2h2v2h-2zm4 4v-2h2v2h-2zm0-4v-2h2v2h-2zm0-4V7h2v2h-2z" />
+          </svg>
+        </button>
+      )}
+
 
       {/* Bottom Sheet Calculadora */}
       <ConverterSheet
