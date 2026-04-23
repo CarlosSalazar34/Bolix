@@ -7,6 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import bcrypt
+from dotenv import load_dotenv
 
 from jose import JWTError, jwt
 
@@ -18,8 +19,10 @@ from app.schemas.token import Token
 
 router = APIRouter()
 
+load_dotenv()
+
 # ── CONFIGURACIÓN DE SEGURIDAD ──────────────────────────────────────────────
-SECRET_KEY = os.getenv("JWT_SECRET", "clave_maestra_bolix_2026_pro")
+SECRET_KEY = os.getenv("JWT_SECRET")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 horas
 
