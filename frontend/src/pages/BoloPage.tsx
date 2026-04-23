@@ -99,10 +99,10 @@ export default function BoloPage() {
 
   const handleTool = async (tool: 'ganancias' | 'saldo' | 'mercado') => {
     if (tool === 'ganancias') {
-      const boloMsg: Message = { 
-        role: 'bolo', 
-        content: 'Mano, la función de Ver Ganancias está siendo desarrollada. ¡Pronto sabrás cuánto billete estás haciendo!', 
-        timestamp: new Date() 
+      const boloMsg: Message = {
+        role: 'bolo',
+        content: 'Mano, la función de Ver Ganancias está siendo desarrollada. ¡Pronto sabrás cuánto billete estás haciendo!',
+        timestamp: new Date()
       }
       setMessages(prev => [...prev, boloMsg])
       return
@@ -135,19 +135,19 @@ export default function BoloPage() {
 
       {/* Tools Bubbles */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-        <button 
+        <button
           onClick={() => handleTool('ganancias')}
           className="whitespace-nowrap px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-sm text-zinc-300 hover:border-emerald-500/50 transition-colors"
         >
           🚀 Ver Ganancias
         </button>
-        <button 
+        <button
           onClick={() => handleTool('saldo')}
           className="whitespace-nowrap px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-sm text-zinc-300 hover:border-emerald-500/50 transition-colors"
         >
           💰 Saldo Principal
         </button>
-        <button 
+        <button
           onClick={() => handleTool('mercado')}
           className="whitespace-nowrap px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-sm text-zinc-300 hover:border-emerald-500/50 transition-colors"
         >
@@ -156,19 +156,19 @@ export default function BoloPage() {
       </div>
 
       {/* Messages Area */}
-      <div 
+      <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto space-y-4 mb-6 pr-2 scrollbar-hide"
       >
         {messages.map((msg, i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div 
+            <div
               className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed
-                ${msg.role === 'user' 
-                  ? 'bg-emerald-600 text-white rounded-tr-none' 
+                ${msg.role === 'user'
+                  ? 'bg-emerald-600 text-white rounded-tr-none'
                   : 'bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-tl-none'}`}
             >
               {msg.content}
@@ -191,21 +191,21 @@ export default function BoloPage() {
       {/* Input Area */}
       <div className="relative">
         <div className="flex items-center gap-2 p-2 bg-zinc-900 border border-zinc-800 rounded-2xl focus-within:border-emerald-500/50 transition-all">
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSendText()}
             placeholder="Escribe algo, mano..."
             className="flex-1 bg-transparent border-none focus:ring-0 text-white text-sm px-2"
           />
-          
-          <button 
-            onClick={() => {
-              const boloMsg: Message = { role: 'bolo', content: 'Mano, la opción de grabar y transcribir audio está siendo desarrollada. ¡Pendiente que pronto viene la vuelta!', timestamp: new Date() }
-              setMessages(prev => [...prev, boloMsg])
-            }}
-            className={`p-2 rounded-xl text-zinc-400 hover:text-emerald-400 transition-colors`}
+
+          <button
+            onMouseDown={startRecording}
+            onMouseUp={stopRecording}
+            onTouchStart={startRecording}
+            onTouchEnd={stopRecording}
+            className={`p-2 rounded-xl transition-colors ${isRecording ? 'text-red-500 animate-pulse' : 'text-zinc-400 hover:text-emerald-400'}`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
               <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
@@ -213,7 +213,7 @@ export default function BoloPage() {
             </svg>
           </button>
 
-          <button 
+          <button
             onClick={handleSendText}
             disabled={!input.trim() || loading}
             className="p-2 bg-emerald-500 text-zinc-950 rounded-xl hover:bg-emerald-400 disabled:opacity-50 disabled:hover:bg-emerald-500 transition-colors"

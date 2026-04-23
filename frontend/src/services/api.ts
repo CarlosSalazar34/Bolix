@@ -97,19 +97,18 @@ export async function boloTexto(texto: string): Promise<ChatResponse> {
 export async function boloVoz(audioBlob: Blob): Promise<ChatResponse> {
   const formData = new FormData()
   formData.append('file', audioBlob, 'voice_note.webm')
-  
+
   const token = localStorage.getItem('bolix_token')
   const headers = token ? { Authorization: `Bearer ${token}` } : {}
-  
+
   const res = await fetch(`${API_BASE}/bot/voz`, {
     method: 'POST',
-    headers: headers,
+    headers: headers as Record<string, string>, // <--- El cambio está aquí
     body: formData
   })
   if (!res.ok) throw new Error('Error al enviar audio a Bolo')
   return res.json()
 }
-
 // ── Wallets ───────────────────────────────────────────────────────────────
 export async function fetchWallets(): Promise<Wallet[]> {
   const res = await fetch(`${API_BASE}/wallets/`, { headers: getHeaders() })
