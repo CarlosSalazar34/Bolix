@@ -3,7 +3,7 @@ import BottomNav from './components/BottomNav'
 import type { Tab } from './components/BottomNav'
 import HomePage from './pages/HomePage'
 import HistorialPage from './pages/HistorialPage'
-import AlertasPage from './pages/AlertasPage'
+// import AlertasPage from './pages/AlertasPage'
 import PerfilPage from './pages/PerfilPage'
 import ConverterSheet from './components/ConverterSheet'
 import { fetchTasas } from './services/api'
@@ -54,7 +54,7 @@ function AppContent() {
       <main className="flex-1 overflow-y-auto px-5 pt-6 pb-20 scrollbar-hide">
         {tab === 'home' && <HomePage />}
         {tab === 'historial' && <HistorialPage />}
-        {tab === 'alertas' && <AlertasPage />}
+        {/* {tab === 'alertas' && <AlertasPage />} */}
         {tab === 'perfil' && <PerfilPage />}
       </main>
 

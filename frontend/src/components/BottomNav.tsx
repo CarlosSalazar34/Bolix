@@ -1,11 +1,12 @@
-import { IconHome, IconChart, IconBell, IconUser } from './icons'
+// import { IconHome, IconChart, IconBell, IconUser } from './icons'
+import { IconHome, IconChart, IconUser } from './icons'
 
 export type Tab = 'home' | 'historial' | 'alertas' | 'perfil'
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'home', label: 'Inicio', icon: <IconHome /> },
   { id: 'historial', label: 'Historial', icon: <IconChart /> },
-  { id: 'alertas', label: 'Alertas', icon: <IconBell /> },
+  // { id: 'alertas', label: 'Alertas', icon: <IconBell /> },
   { id: 'perfil', label: 'Perfil', icon: <IconUser /> },
 ]
 
