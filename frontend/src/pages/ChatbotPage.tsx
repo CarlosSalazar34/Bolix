@@ -126,7 +126,7 @@ export default function ChatbotPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Escribe un mensaje..."
-          className="flex-1 bg-transparent border-0 focus:ring-0 focus:ring-offset-0 focus:outline-none text-white placeholder-zinc-500 px-3 py-2 text-sm"
+          className="flex-1 bg-transparent border-0 focus:ring-0 focus:ring-offset-0 focus:outline-none text-white placeholder-zinc-500 px-3 py-2 text-base"
           disabled={isLoading}
         />
         <button
