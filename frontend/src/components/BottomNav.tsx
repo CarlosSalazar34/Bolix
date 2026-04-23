@@ -8,6 +8,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'historial', label: 'Historial', icon: <IconChart /> },
   { id: 'wallet', label: 'Wallet', icon: <IconWallet /> },
   { id: 'bolo', label: 'Bolo', icon: <IconBolo /> },
+  // { id: 'alertas', label: 'Alertas', icon: <IconBell /> },
   { id: 'perfil', label: 'Perfil', icon: <IconUser /> },
 ]
 
