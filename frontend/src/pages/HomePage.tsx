@@ -6,6 +6,7 @@ import type { RateCardData } from '../components/RateCard'
 import HistoryItem from '../components/HistoryItem'
 import { fetchTasas, fetchHistorial } from '../services/api'
 import type { TasaResponse, HistorialItem } from '../services/api'
+import { registerPushNotifications, sendSubscriptionToBackend } from '../services/pushService'
 
 export default function HomePage() {
   const [tasas, setTasas] = useState<TasaResponse | null>(null)
@@ -36,6 +37,29 @@ export default function HomePage() {
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  // Solicitar permisos de notificación apenas entre
+  useEffect(() => {
+    const setupNotifications = async () => {
+      try {
+        // Solo intentar si el navegador lo soporta
+        if ('Notification' in window && 'serviceWorker' in navigator) {
+          // Si ya tenemos permiso, registramos silenciosamente
+          // Si no, Notification.requestPermission() mostrará el prompt
+          const subscription = await registerPushNotifications()
+          if (subscription) {
+            await sendSubscriptionToBackend(subscription)
+            console.log('Push notifications registered successfully')
+          }
+        }
+      } catch (err) {
+        // Fallar silenciosamente para no interrumpir la experiencia del usuario
+        console.warn('Push registration failed:', err)
+      }
+    }
+
+    setupNotifications()
+  }, [])
 
   const handleRefresh = () => {
     setRefreshing(true)
