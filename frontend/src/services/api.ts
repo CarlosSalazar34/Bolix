@@ -64,3 +64,12 @@ export async function fetchStatus(): Promise<StatusResponse> {
   if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
   return res.json()
 }
+
+export async function sendChatMessage(mensaje: string): Promise<{ respuesta: string }> {
+  const res = await fetch(`${API_BASE}/bot/consultar?mensaje=${encodeURIComponent(mensaje)}`, {
+    method: 'POST',
+    headers: getHeaders()
+  })
+  if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
+  return res.json()
+}
