@@ -66,21 +66,26 @@ graph TD
 ## 🛠️ Stack Tecnológico
 
 ### **Frontend**
-*   **React 19**: Interfaz de usuario declarativa y eficiente.
-*   **TypeScript**: Tipado estático para un código más robusto y mantenible.
-*   **Vite**: Herramienta de compilación ultra-rápida.
-*   **Tailwind CSS 4**: Diseño basado en utilidades con estética premium.
-*   **Lucide React**: Iconografía moderna y consistente.
+| Tecnología | Uso |
+| :--- | :--- |
+| ![React](https://img.shields.io/badge/React_19-61DAFB?style=flat-square&logo=react&logoColor=black) | Librería de UI moderna para una experiencia reactiva. |
+| ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) | Desarrollo robusto con tipado estático. |
+| ![Vite](https://img.shields.io/badge/Vite_8-646CFF?style=flat-square&logo=vite&logoColor=white) | Herramienta de construcción y servidor ultra-rápido. |
+| ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white) | Estilizado premium y diseño responsive. |
 
 ### **Backend**
-*   **FastAPI**: Framework asíncrono de Python de alto rendimiento.
-*   **SQLAlchemy (Async)**: Gestión de base de datos eficiente y escalable.
-*   **PostgreSQL**: Almacenamiento persistente de caché, historial y usuarios.
-*   **BeautifulSoup4**: Extracción precisa de datos externos.
+| Tecnología | Uso |
+| :--- | :--- |
+| ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white) | Lenguaje principal para procesamiento de datos. |
+| ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) | Framework asíncrono de alto rendimiento. |
+| ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white) | Base de datos para caché, historial y auditoría. |
+| ![BeautifulSoup](https://img.shields.io/badge/BeautifulSoup4-grey?style=flat-square) | Motor de extracción para BCV y fuentes externas. |
 
 ### **Infraestructura**
-*   **Vercel**: Alojamiento global para el Frontend y Backend (Serverless).
-*   **Railway**: Instancia de PostgreSQL de grado de producción.
+| Servicio | Uso |
+| :--- | :--- |
+| ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white) | Hosting escalable para Frontend y Backend. |
+| ![Railway](https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white) | Base de datos PostgreSQL gestionada en la nube. |
 
 ---
 
