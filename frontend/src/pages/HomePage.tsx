@@ -136,7 +136,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col gap-5 pb-4">
+    <div className="flex flex-col gap-5 pb-4 max-w-5xl mx-auto w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

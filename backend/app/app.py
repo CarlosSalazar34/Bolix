@@ -13,7 +13,7 @@ from app.models.history import History
 from app.models.cache import Cache 
 from functions.dolar import get_bcv, get_binance
 from middleware.auth import verify_token, get_current_user
-from app.routes import auth, chatbot, trades, notifications  # <--- Agregado notifications
+from app.routes import auth, chatbot, trades, wallets, notifications  # <--- Agregado notifications
 
 load_dotenv()
 
@@ -40,7 +40,7 @@ app.add_middleware(
 async def on_startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    print(f"{GREEN}🚀 Bolix Ecosystem: Tablas sincronizadas en Railway{RESET}")
+    print(f"{GREEN}Bolix Ecosystem: Tablas sincronizadas en Railway{RESET}")
 
 # ── RUTAS BASE ────────────────────────────────────────────────────────────
 
@@ -176,4 +176,5 @@ async def server_status():
 app.include_router(auth.router, prefix="/auth", tags=["Seguridad"])
 app.include_router(chatbot.router, prefix="/bot", tags=["Chatbot"])
 app.include_router(trades.router, prefix="/trades", tags=["Transacciones"]) # <--- Activado
+app.include_router(wallets.router, tags=["Wallets"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notificaciones"])
