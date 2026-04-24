@@ -3,7 +3,7 @@ import { IconWallet, IconPlus, IconTrend } from '../components/icons'
 
 // 1. Separación de funciones y tipos para cumplir con verbatimModuleSyntax
 import { fetchWallets, fetchTrades, createWallet, updateWallet, registrarTrade, smokeTestBolixEndpoints } from '../services/api'
-import type { Wallet as ApiWallet, Trade as ApiTrade } from '../services/api'
+import type { Wallet as ApiWallet, Trade as ApiTrade, SmokeTestResult } from '../services/api'
 
 // ── Tipos de la Interfaz (Frontend) ────────────────────────────────────────
 interface Wallet {
