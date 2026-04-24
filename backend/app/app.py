@@ -45,9 +45,12 @@ app.add_middleware(
 # ── STARTUP ───────────────────────────────────────────────────────────────
 @app.on_event("startup")
 async def on_startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    print(f"{GREEN}🚀 Bolix Ecosystem: Tablas sincronizadas en Railway{RESET}")
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        print(f"{GREEN}Bolix Ecosystem: Tablas sincronizadas{RESET}")
+    except Exception as e:
+        print(f"{RED}Error sincronizando tablas (DB offline?): {e}{RESET}")
 
 # ── RUTAS BASE ────────────────────────────────────────────────────────────
 

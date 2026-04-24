@@ -27,16 +27,10 @@ class SubscriptionModel(BaseModel):
 @router.post("/subscribe")
 async def subscribe_notification(
     subscription: SubscriptionModel,
-    current_username: str = Depends(get_current_user),
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    # 1. Get user id
-    query = select(User).where(User.username == current_username)
-    result = await db.execute(query)
-    user = result.scalars().first()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    # user ya es el objeto recuperado por get_current_user
 
     # 2. Check if subscription already exists
     sub_query = select(PushSubscription).where(PushSubscription.endpoint == subscription.endpoint)
@@ -68,15 +62,10 @@ async def subscribe_notification(
 
 @router.post("/test")
 async def test_notification(
-    current_username: str = Depends(get_current_user),
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    query = select(User).where(User.username == current_username)
-    result = await db.execute(query)
-    user = result.scalars().first()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    # user ya es el objeto recuperado por get_current_user
 
     # Get user subscriptions
     sub_query = select(PushSubscription).where(PushSubscription.user_id == user.id)

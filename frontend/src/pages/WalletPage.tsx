@@ -39,9 +39,9 @@ export default function WalletPage() {
     const loadData = async () => {
       try {
         // 2. Usamos 'unknown' como puente para evitar conflictos de tipos en la respuesta
-        const [walletsData, tradesData] = await Promise.all([
+        const [walletsData, tradesResponse] = await Promise.all([
           fetchWallets() as Promise<ApiWallet[]>,
-          fetchTrades() as unknown as Promise<ApiTrade[]> 
+          fetchTrades() as unknown as Promise<{ historial: ApiTrade[] }> 
         ]);
 
         // 3. Mapeo de Wallets
@@ -56,8 +56,8 @@ export default function WalletPage() {
           color: getColorByTipo(w.moneda)
         }));
 
-        // 4. Mapeo de Transacciones (Basado en la lista directa de tu Swagger)
-        const mappedTransactions: Transaction[] = (tradesData || []).map((t: ApiTrade) => ({
+        // 4. Mapeo de Transacciones (Usando el historial del objeto de respuesta)
+        const mappedTransactions: Transaction[] = (tradesResponse?.historial || []).map((t: ApiTrade) => ({
           id: t.id.toString(),
           descripcion: t.tipo === 'COMPRA' ? 'Compra de Activos' : t.tipo === 'VENTA' ? 'Venta de Activos' : 'Fondeo de cuenta',
           monto: Number(t.monto_usdt),

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import BottomNav from './components/BottomNav'
 import type { Tab } from './components/BottomNav'
 import HomePage from './pages/HomePage'
@@ -88,9 +88,9 @@ function AppContent() {
         tasas={tasas}
       />
 
-      <BottomSheet 
-        open={chatOpen} 
-        onClose={() => setChatOpen(false)} 
+      <BottomSheet
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
         title="Bolo Asistente 🤖"
       >
         <div className="h-[70dvh]">
