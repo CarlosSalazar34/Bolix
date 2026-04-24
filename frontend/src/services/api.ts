@@ -12,39 +12,7 @@ export const api = axios.create({
     baseURL: API_BASE,
 });
 
-const getWithFallback = async <T>(paths: string[]): Promise<T> => {
-    let lastError: unknown = null;
-    for (const path of paths) {
-        try {
-            const { data } = await api.get<T>(path);
-            return data;
-        } catch (error: any) {
-            const status = error?.response?.status;
-            if (status !== 404) {
-                throw error;
-            }
-            lastError = error;
-        }
-    }
-    throw lastError ?? new Error('No se encontro endpoint disponible');
-};
 
-const postWithFallback = async <T>(paths: string[], payload: unknown): Promise<T> => {
-    let lastError: unknown = null;
-    for (const path of paths) {
-        try {
-            const { data } = await api.post<T>(path, payload);
-            return data;
-        } catch (error: any) {
-            const status = error?.response?.status;
-            if (status !== 404) {
-                throw error;
-            }
-            lastError = error;
-        }
-    }
-    throw lastError ?? new Error('No se encontro endpoint disponible');
-};
 
 const getStoredUserId = (): number | null => {
     const raw = localStorage.getItem('bolix_user_id');
@@ -319,7 +287,7 @@ export const createWallet = async (payload: {
         return newWallet;
     }
     try {
-        const data = await postWithFallback<Wallet>(['/wallets/', '/wallets'], payload);
+        const { data } = await api.post<Wallet>('/wallets/', payload);
         setCapabilities({ walletsAvailable: true });
         return data;
     } catch (error: any) {
@@ -405,12 +373,9 @@ export const registrarTrade = async (payload: {
         user_id: storedUserId ? Number(storedUserId) : undefined,
     };
     try {
-        const result = await postWithFallback(
-            ['/trades/registrar', '/trades/trades/registrar'],
-            payloadCompat
-        );
+        const { data } = await api.post('/trades/registrar', payloadCompat);
         setCapabilities({ tradesAvailable: true });
-        return result;
+        return data;
     } catch (error: any) {
         const status = error?.response?.status;
         if (status !== 404 && status !== 422) {
