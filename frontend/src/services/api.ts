@@ -179,6 +179,44 @@ export const registrarTrade = async (payload: {
     return data;
 };
 
+export interface SmokeTestResult {
+    endpoint: string;
+    ok: boolean;
+    status: number | null;
+    message: string;
+}
+
+export const smokeTestBolixEndpoints = async (): Promise<SmokeTestResult[]> => {
+    const candidates = [
+        '/status',
+        '/wallets/',
+        '/balance',
+    ];
+
+    const results = await Promise.all(
+        candidates.map(async (endpoint) => {
+            try {
+                const response = await api.get(endpoint);
+                return {
+                    endpoint,
+                    ok: true,
+                    status: response.status,
+                    message: 'OK',
+                } satisfies SmokeTestResult;
+            } catch (error: any) {
+                return {
+                    endpoint,
+                    ok: false,
+                    status: error?.response?.status ?? null,
+                    message: error?.response?.statusText ?? error?.message ?? 'Error',
+                } satisfies SmokeTestResult;
+            }
+        })
+    );
+
+    return results;
+};
+
 export const sendChatMessage = async (mensaje: string): Promise<{ respuesta: string }> => {
     const { data } = await api.post<{ respuesta: string }>(
         `/bot/chatbot/consultar`,

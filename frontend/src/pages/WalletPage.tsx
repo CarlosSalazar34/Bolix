@@ -105,12 +105,12 @@ export default function WalletPage() {
     loadData();
     if (import.meta.env.DEV) {
       smokeTestBolixEndpoints()
-        .then((results) => {
+        .then((results: SmokeTestResult[]) => {
           console.group('Bolix Smoke Test');
           console.table(results);
           console.groupEnd();
         })
-        .catch((error) => {
+        .catch((error: any) => {
           console.error('Smoke test fallo:', error);
         });
     }
