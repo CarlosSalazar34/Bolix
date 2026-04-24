@@ -15,7 +15,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 
 function AppContent() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, logout } = useAuth()
   const [authView, setAuthView] = useState<'login' | 'register'>('login')
   const [tab, setTab] = useState<Tab>('home')
   const [sheetOpen, setSheetOpen] = useState(false)
