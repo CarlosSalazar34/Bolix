@@ -211,26 +211,6 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
           </div>
         </div>
 
-        {/* Tasa actual */}
-        {/* {tasas && (
-          <div className="rounded-xl bg-zinc-800/50 border border-zinc-700/40 px-4 py-3 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-400">Tasa actual</p>
-              <p className="text-white font-bold text-lg">Bs. {rate.toFixed(2)}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-zinc-400">{currentOption.sublabel}</p>
-              <p className={`text-xs font-medium mt-0.5 px-2 py-0.5 rounded-full inline-block
-                ${tasas.estatus_mercado.includes('Estable')
-                  ? 'bg-emerald-500/20 text-emerald-400'
-                  : 'bg-yellow-500/20 text-yellow-400'
-                }`}>
-                {tasas.estatus_mercado.includes('Estable') ? '✅ Estable' : '⚠️ Alerta'}
-              </p>
-            </div>
-          </div>
-        )} */}
-
         <ActionsSheet
           amount={amount}
           result={result}

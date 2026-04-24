@@ -42,7 +42,6 @@ export default function ActionsSheet({ amount, result, currency, onEditQuickAmou
     load()
   }, [])
 
-  // Función para construir y abrir el mensaje de WhatsApp
   const openWhatsApp = (pagoBanco: string, pagoCedula: string, pagoTelefono: string) => {
     let text = `*BOLIX - Orden de Pago*\n\n`
     text += `Total a pagar: *Bs. ${result}*\n`
@@ -76,10 +75,7 @@ export default function ActionsSheet({ amount, result, currency, onEditQuickAmou
       })
       setProfile(updated)
       setShowDialog(false)
-      
-      // Abrir WhatsApp inmediatamente después de guardar satisfactoriamente
-      openWhatsApp(form.banco, form.cedula, form.telefono)
-      
+      // No abrimos WhatsApp automáticamente aquí, dejamos que el usuario toque el nuevo botón verde
     } catch (e) {
       alert("Error al guardar en el servidor")
     } finally {
@@ -159,7 +155,7 @@ export default function ActionsSheet({ amount, result, currency, onEditQuickAmou
                   disabled={loading}
                   className="flex-1 h-12 rounded-2xl bg-emerald-500 text-zinc-950 font-bold text-sm active:scale-95 transition-all disabled:opacity-50"
                 >
-                  {loading ? 'Guardando...' : 'Guardar y Cobrar'}
+                  {loading ? 'Guardando...' : 'Guardar Datos'}
                 </button>
               </div>
             </div>
@@ -205,15 +201,15 @@ export default function ActionsSheet({ amount, result, currency, onEditQuickAmou
             disabled={!result || fetchingProfile}
             className={`w-full h-[72px] rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all active:scale-[0.98] shadow-lg
               ${result 
-                ? 'bg-emerald-500 text-zinc-950 hover:bg-emerald-400' 
-                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'}`}
+                ? (isConfigured ? 'bg-emerald-500 text-zinc-950 hover:bg-emerald-400' : 'bg-zinc-800 text-white border border-zinc-700') 
+                : 'bg-zinc-900 text-zinc-600 cursor-not-allowed opacity-40'}`}
           >
-            <span className="text-base font-black uppercase tracking-tight">
-              {fetchingProfile ? '...' : 'Cobrar'}
+            <span className={`text-base font-black uppercase tracking-tight ${!isConfigured && result ? 'text-zinc-300' : ''}`}>
+              {fetchingProfile ? '...' : (isConfigured ? 'Cobrar' : 'Configurar')}
             </span>
             <div className="flex items-center gap-1.5 opacity-80">
               <IconWhatsApp />
-              <span className="text-[10px] font-bold">Cobrar por WhatsApp</span>
+              <span className="text-[10px] font-bold">{isConfigured ? 'WhatsApp' : 'Poner Datos'}</span>
             </div>
           </button>
         </div>
