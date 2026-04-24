@@ -120,10 +120,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Si el servidor responde 401, el token ya no sirve o expiró
         if (error.response && error.response.status === 401) {
-            console.warn("Sesión expirada o inválida. Redirigiendo al login...");
+            console.warn("Sesión expirada o inválida. Cerrando sesión...");
             authService.logout(); 
+            // Recargamos la app para que vuelva al estado de login inicial
+            window.location.reload(); 
         }
         return Promise.reject(error);
     }
@@ -263,7 +264,7 @@ export const fetchTrades = async (): Promise<TradeResponse> => {
         };
     }
     try {
-        const path = userId ? `/trades/balance?user_id=${userId}` : '/trades/balance';
+        const path = userId ? `/balance?user_id=${userId}` : '/balance';
         const { data } = await api.get<TradeResponse>(path);
         setCapabilities({ tradesAvailable: true });
         return data;
@@ -396,7 +397,7 @@ export const registrarTrade = async (payload: {
         user_id: storedUserId ? Number(storedUserId) : undefined,
     };
     try {
-        const { data } = await api.post('/trades/registrar', payloadCompat);
+        const { data } = await api.post('/registrar', payloadCompat);
         setCapabilities({ tradesAvailable: true });
         return data;
     } catch (error: any) {
@@ -420,7 +421,7 @@ export const smokeTestBolixEndpoints = async (): Promise<SmokeTestResult[]> => {
     const candidates = [
         '/status',
         '/wallets/',
-        '/trades/balance',
+        '/balance',
     ];
 
     const results = await Promise.all(
