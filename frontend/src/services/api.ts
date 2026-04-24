@@ -5,7 +5,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const LOCAL_WALLETS_KEY = 'bolix_local_wallets';
 const LOCAL_TRADES_KEY = 'bolix_local_trades';
 const CAPABILITIES_KEY = 'bolix_api_capabilities';
-const FORCE_LOCAL_WALLET_TRADES = API_BASE.includes('bolix-backend.vercel.app');
+const FORCE_LOCAL_WALLET_TRADES = false; // Desactivado para usar la DB real
 
 // 1. Instancia centralizada de Axios
 export const api = axios.create({
@@ -246,18 +246,12 @@ export const fetchWallets = async (): Promise<Wallet[]> => {
         return getLocalWallets();
     }
     try {
-        const data = await getWithFallback<Wallet[]>([
-            '/wallets/',
-            '/wallets',
-        ]);
+        const { data } = await api.get<Wallet[]>('/wallets/');
         setCapabilities({ walletsAvailable: true });
         return data;
     } catch (error: any) {
-        if (error?.response?.status === 404) {
-            setCapabilities({ walletsAvailable: false });
-            return getLocalWallets();
-        }
-        throw error;
+        setCapabilities({ walletsAvailable: false });
+        return getLocalWallets();
     }
 };
 
@@ -278,31 +272,16 @@ export const fetchTrades = async (): Promise<TradeResponse> => {
         };
     }
     try {
-        let data: TradeResponse;
-        if (userId) {
-            data = await getWithFallback<TradeResponse>([
-                `/trades/trades/balance/${userId}`,
-                `/trades/balance/${userId}`,
-                '/trades/balance',
-                '/trades/trades/balance',
-            ]);
-        } else {
-            data = await getWithFallback<TradeResponse>([
-                '/trades/balance',
-                '/trades/trades/balance',
-            ]);
-        }
+        const path = userId ? `/trades/balance?user_id=${userId}` : '/trades/balance';
+        const { data } = await api.get<TradeResponse>(path);
         setCapabilities({ tradesAvailable: true });
         return data;
     } catch (error: any) {
-        if (error?.response?.status === 404 || error?.response?.status === 422) {
-            setCapabilities({ tradesAvailable: false });
-            return {
-                saldo_actual_usdt: 0,
-                historial: localTrades,
-            };
-        }
-        throw error;
+        setCapabilities({ tradesAvailable: false });
+        return {
+            saldo_actual_usdt: 0,
+            historial: localTrades,
+        };
     }
 };
 
@@ -453,9 +432,7 @@ export const smokeTestBolixEndpoints = async (): Promise<SmokeTestResult[]> => {
     const candidates = [
         '/status',
         '/wallets/',
-        '/wallets',
         '/trades/balance',
-        '/trades/trades/balance',
     ];
 
     const results = await Promise.all(
