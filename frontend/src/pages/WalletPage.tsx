@@ -232,7 +232,7 @@ export default function WalletPage() {
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
-      
+
       {/* Header */}
       <div className="flex justify-between items-end px-1">
         <div>
@@ -257,7 +257,7 @@ export default function WalletPage() {
             value={walletNombre}
             onChange={(e) => setWalletNombre(e.target.value)}
             placeholder="Nombre (ej: Binance)"
-            className="h-10 rounded-xl bg-zinc-950 border border-zinc-700 px-3 text-sm text-white"
+            className="h-10 rounded-xl bg-zinc-950 border border-zinc-700 px-3 text-sm text-white text-base"
           />
           <div className="flex gap-2">
             <select
@@ -273,12 +273,12 @@ export default function WalletPage() {
               value={walletSaldo}
               onChange={(e) => setWalletSaldo(e.target.value)}
               placeholder="Saldo"
-              className="h-10 rounded-xl bg-zinc-950 border border-zinc-700 px-3 text-sm text-white w-32"
+              className="h-10 text-base rounded-xl bg-zinc-950 border border-zinc-700 px-3 text-sm text-white w-32"
             />
           </div>
           <button
             onClick={handleGuardarWallet}
-            className="h-10 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500"
+            className="h-10 text-base rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500"
           >
             {editingWalletId ? 'Actualizar billetera' : 'Guardar billetera'}
           </button>
@@ -293,8 +293,8 @@ export default function WalletPage() {
           </div>
         ) : (
           wallets.map((w) => (
-            <div 
-              key={w.id} 
+            <div
+              key={w.id}
               className={`min-w-[280px] h-44 rounded-[2.5rem] p-6 bg-gradient-to-br ${w.color} relative overflow-hidden shadow-xl flex flex-col justify-between`}
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-12 translate-x-12 blur-2xl" />
@@ -366,7 +366,7 @@ export default function WalletPage() {
                 value={tradeMonto}
                 onChange={(e) => setTradeMonto(e.target.value)}
                 placeholder="Monto"
-                className="h-9 rounded-lg bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
+                className="h-9 rounded-lg text-base bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
               />
               <button
                 onClick={handleRegistrarFondeo}
@@ -383,8 +383,8 @@ export default function WalletPage() {
             <div className="p-10 text-center text-zinc-500 text-sm italic">No hay movimientos aún.</div>
           ) : (
             transactions.map((t, i) => (
-              <div 
-                key={t.id} 
+              <div
+                key={t.id}
                 className={`flex items-center justify-between p-4 ${i !== transactions.length - 1 ? 'border-b border-zinc-800/50' : ''}`}
               >
                 <div className="flex items-center gap-4">
