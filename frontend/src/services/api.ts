@@ -168,6 +168,10 @@ export const deleteWallet = async (walletId: number): Promise<void> => {
     await api.delete(`/wallets/${walletId}`);
 };
 
+export const deleteTrade = async (tradeId: number): Promise<void> => {
+    await api.delete(`/trades/${tradeId}`);
+};
+
 export const registrarTrade = async (payload: {
     tipo: 'COMPRA' | 'VENTA' | 'FONDEO';
     monto_usdt: number;

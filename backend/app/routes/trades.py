@@ -129,3 +129,26 @@ async def get_balance(
         "saldo_actual_usdt": wallet.saldo if wallet else 0,
         "historial": trades_list
     }
+
+# 5. Eliminar un movimiento (Trade)
+@router.delete("/{trade_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_trade(
+    trade_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    # Verificamos que el trade exista y pertenezca al usuario
+    result = await db.execute(
+        select(Trade).where(Trade.id == trade_id, Trade.user_id == current_user.id)
+    )
+    db_trade = result.scalars().first()
+
+    if not db_trade:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Movimiento no encontrado o no autorizado"
+        )
+
+    await db.delete(db_trade)
+    await db.commit()
+    return None

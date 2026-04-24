@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
-import { IconWallet, IconPlus, IconTrend } from '../components/icons'
-
 // 1. Separación de funciones y tipos para cumplir con verbatimModuleSyntax
-import { fetchWallets, fetchTrades, createWallet, updateWallet, registrarTrade, smokeTestBolixEndpoints } from '../services/api'
+import { fetchWallets, fetchTrades, createWallet, updateWallet, registrarTrade, smokeTestBolixEndpoints, deleteWallet, deleteTrade } from '../services/api'
 import type { Wallet as ApiWallet, Trade as ApiTrade, SmokeTestResult } from '../services/api'
+import { IconWallet, IconPlus, IconTrend, IconTrash } from '../components/icons'
 
 // ── Tipos de la Interfaz (Frontend) ────────────────────────────────────────
 interface Wallet {
@@ -122,37 +121,70 @@ export default function WalletPage() {
     }
   }, [wallets, tradeWalletId])
 
-  const handleAgregarWallet = async () => {
+  const handleGuardarWallet = async () => {
     const nombre = walletNombre.trim()
     const saldo = Number(walletSaldo)
     const esPrincipal = walletMoneda === 'USDT'
 
     if (!nombre) {
-      console.warn('Debes colocar un nombre de wallet')
+      alert('Ponle un nombre a la cuenta')
       return
     }
 
-    if (Number.isNaN(saldo)) {
-      console.warn('Saldo invalido');
+    try {
+      if (editingWalletId) {
+        await updateWallet(Number(editingWalletId), {
+          nombre,
+          moneda: walletMoneda,
+          saldo,
+          es_principal_usdt: esPrincipal
+        })
+      } else {
+        await createWallet({
+          nombre,
+          moneda: walletMoneda,
+          saldo,
+          es_principal_usdt: esPrincipal
+        })
+      }
+      setShowWalletForm(false)
+      setEditingWalletId(null)
+      setWalletNombre('')
+      setWalletSaldo('0')
+      await loadData()
+    } catch (error) {
+      console.error('Error al guardar wallet:', error)
+      alert('Error al guardar la billetera')
+    }
+  }
+
+  const handleEliminarWallet = async (id: number, saldo: number) => {
+    if (saldo > 0) {
+      alert("No puedes eliminar una billetera con saldo. Primero retira los fondos o gástalos.");
       return;
     }
 
-    try {
-      await createWallet({
-        nombre,
-        moneda: walletMoneda,
-        saldo,
-        es_principal_usdt: esPrincipal
-      });
-      setWalletNombre('')
-      setWalletSaldo('0')
-      setWalletMoneda('USDT')
-      setShowWalletForm(false)
-      await loadData();
-    } catch (error) {
-      console.error('No se pudo crear la wallet:', error);
+    if (window.confirm("¿Estás seguro de que quieres eliminar esta billetera?")) {
+      try {
+        await deleteWallet(id);
+        await loadData();
+      } catch (error) {
+        console.error("Error al eliminar wallet:", error);
+        alert("No se pudo eliminar la billetera.");
+      }
     }
-  };
+  }
+
+  const handleEliminarTrade = async (id: number) => {
+    if (window.confirm("¿Eliminar este movimiento? Esto no devolverá el dinero a la billetera automáticamente.")) {
+      try {
+        await deleteTrade(id);
+        await loadData();
+      } catch (error) {
+        console.error("Error al eliminar trade:", error);
+      }
+    }
+  }
 
   const handleEditarWallet = (wallet: Wallet) => {
     setEditingWalletId(wallet.id)
@@ -160,36 +192,6 @@ export default function WalletPage() {
     setWalletMoneda(wallet.moneda)
     setWalletSaldo(String(wallet.balance))
     setShowWalletForm(true)
-  }
-
-  const handleGuardarWallet = async () => {
-    if (editingWalletId) {
-      const nombre = walletNombre.trim()
-      const saldo = Number(walletSaldo)
-      const esPrincipal = walletMoneda === 'USDT'
-      if (!nombre || Number.isNaN(saldo)) {
-        console.warn('Datos de billetera invalidos')
-        return
-      }
-      try {
-        await updateWallet(Number(editingWalletId), {
-          nombre,
-          moneda: walletMoneda,
-          saldo,
-          es_principal_usdt: esPrincipal
-        })
-        setEditingWalletId(null)
-        setWalletNombre('')
-        setWalletSaldo('0')
-        setWalletMoneda('USDT')
-        setShowWalletForm(false)
-        await loadData()
-      } catch (error) {
-        console.error('No se pudo editar la wallet:', error)
-      }
-      return
-    }
-    await handleAgregarWallet()
   }
 
   const handleRegistrarFondeo = async () => {
@@ -254,14 +256,14 @@ export default function WalletPage() {
             <h3 className="text-sm font-bold text-white uppercase tracking-widest">
               {editingWalletId ? 'Editar billetera' : 'Nueva billetera'}
             </h3>
-            <button 
+            <button
               onClick={() => { setShowWalletForm(false); setEditingWalletId(null); }}
               className="text-zinc-500 hover:text-red-400 p-1"
             >
               ✕
             </button>
           </div>
-          
+
           <div className="flex flex-col gap-4">
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Nombre de la cuenta</label>
@@ -336,12 +338,20 @@ export default function WalletPage() {
                 <h3 className="text-3xl font-bold text-white tracking-tighter">
                   {w.moneda === 'BS' ? 'Bs.' : w.moneda === 'USDT' ? '₮' : '$'} {w.balance.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
                 </h3>
-                <button
-                  onClick={() => handleEditarWallet(w)}
-                  className="mt-2 text-[10px] uppercase font-bold text-white/80 hover:text-white underline"
-                >
-                  Editar
-                </button>
+                <div className="flex gap-4 items-center mt-2">
+                  <button
+                    onClick={() => handleEditarWallet(w)}
+                    className="text-[10px] uppercase font-bold text-white/80 hover:text-white underline"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleEliminarWallet(Number(w.id), w.balance)}
+                    className="text-[10px] uppercase font-bold text-white/50 hover:text-red-300 transition-colors"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
             </div>
           ))
@@ -366,7 +376,7 @@ export default function WalletPage() {
               <h3 className="text-sm font-bold text-white uppercase tracking-widest">Registrar Movimiento</h3>
               <button onClick={() => setShowTradeForm(false)} className="text-zinc-500 hover:text-red-400 p-1">✕</button>
             </div>
-            
+
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
@@ -446,7 +456,14 @@ export default function WalletPage() {
                   <p className={`font-bold text-sm tracking-tight ${t.tipo === 'ingreso' ? 'text-emerald-400' : 'text-zinc-300'}`}>
                     {t.tipo === 'egreso' ? '-' : '+'} {t.monto.toFixed(2)} {t.moneda}
                   </p>
-                  <div className="flex justify-end mt-1">
+                  <div className="flex justify-end gap-2 mt-1">
+                    <button
+                      onClick={() => handleEliminarTrade(Number(t.id))}
+                      className="text-zinc-600 hover:text-red-400/70 transition-colors p-1"
+                      title="Eliminar movimiento"
+                    >
+                      <IconTrash size={14} />
+                    </button>
                     <IconTrend up={t.tipo === 'ingreso'} />
                   </div>
                 </div>
