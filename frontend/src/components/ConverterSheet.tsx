@@ -49,7 +49,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
   const [selected, setSelected] = useState<Currency>('USD')
   const [amount, setAmount] = useState('')
   const [direction, setDirection] = useState<'toBs' | 'fromBs'>('toBs')
-  
+
   // Gestión de montos personalizados
   const [quickAmounts, setQuickAmounts] = useState<number[]>(DEFAULT_AMOUNTS)
   const [isEditingAmounts, setIsEditingAmounts] = useState(false)
@@ -149,12 +149,12 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
             <div className="flex justify-between items-center mb-2">
               <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Montos Rápidos</p>
               {isEditingAmounts && (
-                 <button 
-                 onClick={() => setIsEditingAmounts(false)}
-                 className="text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-emerald-500 text-zinc-950 transition-colors"
-               >
-                 Guardar Cambios
-               </button>
+                <button
+                  onClick={() => setIsEditingAmounts(false)}
+                  className="text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-emerald-500 text-zinc-950 transition-colors"
+                >
+                  Guardar Cambios
+                </button>
               )}
             </div>
             <div className="grid grid-cols-4 gap-2">
@@ -212,7 +212,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
         </div>
 
         {/* Tasa actual */}
-        {tasas && (
+        {/* {tasas && (
           <div className="rounded-xl bg-zinc-800/50 border border-zinc-700/40 px-4 py-3 flex items-center justify-between">
             <div>
               <p className="text-xs text-zinc-400">Tasa actual</p>
@@ -229,12 +229,12 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
               </p>
             </div>
           </div>
-        )}
+        )} */}
 
-        <ActionsSheet 
-          amount={amount} 
-          result={result} 
-          currency={selected} 
+        <ActionsSheet
+          amount={amount}
+          result={result}
+          currency={selected}
           onEditQuickAmounts={() => setIsEditingAmounts(!isEditingAmounts)}
         />
 
