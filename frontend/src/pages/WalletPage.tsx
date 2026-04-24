@@ -249,39 +249,63 @@ export default function WalletPage() {
       </div>
 
       {showWalletForm && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 flex flex-col gap-3">
-          <p className="text-xs text-zinc-400 uppercase tracking-widest">
-            {editingWalletId ? 'Editar billetera' : 'Nueva billetera'}
-          </p>
-          <input
-            value={walletNombre}
-            onChange={(e) => setWalletNombre(e.target.value)}
-            placeholder="Nombre (ej: Binance)"
-            className="h-10 rounded-xl bg-zinc-950 border border-zinc-700 px-3 text-sm text-white text-base"
-          />
-          <div className="flex gap-2">
-            <select
-              value={walletMoneda}
-              onChange={(e) => setWalletMoneda(e.target.value as 'USDT' | 'USD' | 'BS')}
-              className="h-10 rounded-xl bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
+        <div className="mx-1 p-5 rounded-[2rem] bg-zinc-900/80 border border-zinc-800 backdrop-blur-md shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-bold text-white uppercase tracking-widest">
+              {editingWalletId ? 'Editar billetera' : 'Nueva billetera'}
+            </h3>
+            <button 
+              onClick={() => { setShowWalletForm(false); setEditingWalletId(null); }}
+              className="text-zinc-500 hover:text-red-400 p-1"
             >
-              <option value="USDT">USDT</option>
-              <option value="USD">USD</option>
-              <option value="BS">BS</option>
-            </select>
-            <input
-              value={walletSaldo}
-              onChange={(e) => setWalletSaldo(e.target.value)}
-              placeholder="Saldo"
-              className="h-10 text-base rounded-xl bg-zinc-950 border border-zinc-700 px-3 text-sm text-white w-32"
-            />
+              ✕
+            </button>
           </div>
-          <button
-            onClick={handleGuardarWallet}
-            className="h-10 text-base rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500"
-          >
-            {editingWalletId ? 'Actualizar billetera' : 'Guardar billetera'}
-          </button>
+          
+          <div className="flex flex-col gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Nombre de la cuenta</label>
+              <input
+                value={walletNombre}
+                onChange={(e) => setWalletNombre(e.target.value)}
+                placeholder="Ej: Efectivo, Binance, Banesco..."
+                className="w-full h-12 text-base rounded-2xl bg-zinc-950 border border-zinc-800 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 px-4 text-white transition-all outline-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Moneda</label>
+                <select
+                  value={walletMoneda}
+                  onChange={(e) => setWalletMoneda(e.target.value as 'USDT' | 'USD' | 'BS')}
+                  className="w-full h-12 text-base rounded-2xl bg-zinc-950 border border-zinc-800 px-4 text-white outline-none appearance-none"
+                >
+                  <option value="USDT">USDT (₮)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="BS">BS (Bs.)</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Saldo inicial</label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={walletSaldo}
+                  onChange={(e) => setWalletSaldo(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full h-12 text-base rounded-2xl bg-zinc-950 border border-zinc-800 px-4 text-white outline-none"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={handleGuardarWallet}
+              className="h-12 mt-2 text-base rounded-2xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-900/20 active:scale-[0.98] transition-all"
+            >
+              {editingWalletId ? 'Guardar cambios' : 'Crear Billetera'}
+            </button>
+          </div>
         </div>
       )}
 
@@ -337,42 +361,61 @@ export default function WalletPage() {
         </div>
 
         {showTradeForm && (
-          <div className="mx-1 mb-2 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3 flex flex-col gap-2">
-            <div className="flex gap-2">
-              <select
-                value={tradeTipo}
-                onChange={(e) => setTradeTipo(e.target.value as 'COMPRA' | 'VENTA' | 'FONDEO')}
-                className="h-9 rounded-lg bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
-              >
-                <option value="FONDEO">Fondeo</option>
-                <option value="COMPRA">Compra</option>
-                <option value="VENTA">Venta</option>
-              </select>
-              <select
-                value={tradeWalletId}
-                onChange={(e) => setTradeWalletId(e.target.value)}
-                className="h-9 rounded-lg bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
-              >
-                <option value="">Selecciona wallet</option>
-                {wallets.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.nombre} ({w.moneda})
-                  </option>
-                ))}
-              </select>
+          <div className="mx-1 mb-4 p-5 rounded-[2rem] bg-zinc-900/80 border border-zinc-800 backdrop-blur-md shadow-2xl animate-in slide-in-from-top-4 duration-200">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-bold text-white uppercase tracking-widest">Registrar Movimiento</h3>
+              <button onClick={() => setShowTradeForm(false)} className="text-zinc-500 hover:text-red-400 p-1">✕</button>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                value={tradeMonto}
-                onChange={(e) => setTradeMonto(e.target.value)}
-                placeholder="Monto"
-                className="h-9 rounded-lg text-base bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
-              />
+            
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Operación</label>
+                  <select
+                    value={tradeTipo}
+                    onChange={(e) => setTradeTipo(e.target.value as 'COMPRA' | 'VENTA' | 'FONDEO')}
+                    className="w-full h-11 text-base rounded-xl bg-zinc-950 border border-zinc-800 px-3 text-white outline-none"
+                  >
+                    <option value="FONDEO">📥 Fondeo</option>
+                    <option value="COMPRA">💵 Compra</option>
+                    <option value="VENTA">💰 Venta</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Wallet</label>
+                  <select
+                    value={tradeWalletId}
+                    onChange={(e) => setTradeWalletId(e.target.value)}
+                    className="w-full h-11 text-base rounded-xl bg-zinc-950 border border-zinc-800 px-3 text-white outline-none"
+                  >
+                    <option value="">Seleccionar...</option>
+                    {wallets.map((w) => (
+                      <option key={w.id} value={w.id}>{w.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Monto en USDT</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={tradeMonto}
+                    onChange={(e) => setTradeMonto(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full h-12 text-base rounded-2xl bg-zinc-950 border border-zinc-800 px-4 text-white outline-none pr-12 font-bold"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold text-xs">₮</span>
+                </div>
+              </div>
+
               <button
                 onClick={handleRegistrarFondeo}
-                className="h-9 px-3 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500"
+                className="h-12 text-base rounded-2xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-900/20 active:scale-[0.98] transition-all"
               >
-                Confirmar
+                Confirmar Registro
               </button>
             </div>
           </div>
