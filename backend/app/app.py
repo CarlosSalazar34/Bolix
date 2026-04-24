@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timezone, timedelta
+from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
-
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,12 +12,19 @@ from app.database import engine, Base, get_db
 from app.models.history import History
 from app.models.cache import Cache 
 from functions.dolar import get_bcv, get_binance
-from middleware.auth import verify_token, get_current_user
-from app.routes import auth, chatbot, trades, notifications  # <--- Agregado notifications
+from middleware.auth import get_current_user
+from app.routes import auth, chatbot, trades, notifications, wallets  # <--- Agregado notifications
 
 load_dotenv()
 
-app = FastAPI(title="Bolix API", version="1.2.6")
+app = FastAPI(
+    title="Bolix API",
+    # Esto fuerza a que el candado aparezca arriba a la derecha en Swagger
+    swagger_ui_parameters={"persistAuthorization": True} 
+)
+
+# Y asegúrate de que el login esté configurado así:
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 # Colores terminal
 GREEN, BLUE, RED, RESET = "\033[92m", "\033[94m", "\033[91m", "\033[0m"
@@ -38,9 +45,12 @@ app.add_middleware(
 # ── STARTUP ───────────────────────────────────────────────────────────────
 @app.on_event("startup")
 async def on_startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    print(f"{GREEN}🚀 Bolix Ecosystem: Tablas sincronizadas en Railway{RESET}")
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        print(f"{GREEN}Bolix Ecosystem: Tablas sincronizadas{RESET}")
+    except Exception as e:
+        print(f"{RED}Error sincronizando tablas (DB offline?): {e}{RESET}")
 
 # ── RUTAS BASE ────────────────────────────────────────────────────────────
 
@@ -175,5 +185,6 @@ async def server_status():
 # ── RUTAS EXTERNAS ────────────────────────────────────────────────────────
 app.include_router(auth.router, prefix="/auth", tags=["Seguridad"])
 app.include_router(chatbot.router, prefix="/bot", tags=["Chatbot"])
-app.include_router(trades.router, prefix="/trades", tags=["Transacciones"]) # <--- Activado
+app.include_router(trades.router, tags=["Transacciones"]) # <--- Activado
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notificaciones"])
+app.include_router(wallets.router)
