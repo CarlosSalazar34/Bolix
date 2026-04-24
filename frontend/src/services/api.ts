@@ -137,7 +137,7 @@ export const fetchWallets = async (): Promise<Wallet[]> => {
 };
 
 export const fetchTrades = async (): Promise<TradeResponse> => {
-    const { data } = await api.get<TradeResponse>('/balance');
+    const { data } = await api.get<TradeResponse>('/trades/balance');
     return data;
 };
 
@@ -175,7 +175,7 @@ export const registrarTrade = async (payload: {
     wallet_id?: number;
     moneda?: string;
 }) => {
-    const { data } = await api.post('/registrar', payload);
+    const { data } = await api.post('/trades/registrar', payload);
     return data;
 };
 
@@ -190,7 +190,7 @@ export const smokeTestBolixEndpoints = async (): Promise<SmokeTestResult[]> => {
     const candidates = [
         '/status',
         '/wallets/',
-        '/balance',
+        '/trades/balance',
     ];
 
     const results = await Promise.all(
