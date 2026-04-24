@@ -185,6 +185,6 @@ async def server_status():
 # ── RUTAS EXTERNAS ────────────────────────────────────────────────────────
 app.include_router(auth.router, prefix="/auth", tags=["Seguridad"])
 app.include_router(chatbot.router, prefix="/bot", tags=["Chatbot"])
-app.include_router(trades.router, prefix="/trades", tags=["Transacciones"]) # <--- Activado
+app.include_router(trades.router, tags=["Transacciones"]) # <--- Activado
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notificaciones"])
 app.include_router(wallets.router)

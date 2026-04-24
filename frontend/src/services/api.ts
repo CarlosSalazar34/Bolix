@@ -2,11 +2,140 @@ import axios from 'axios';
 import { authService } from './auth.service';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const LOCAL_WALLETS_KEY = 'bolix_local_wallets';
+const LOCAL_TRADES_KEY = 'bolix_local_trades';
+const CAPABILITIES_KEY = 'bolix_api_capabilities';
+const FORCE_LOCAL_WALLET_TRADES = API_BASE.includes('bolix-backend.vercel.app');
 
 // 1. Instancia centralizada de Axios
 export const api = axios.create({
     baseURL: API_BASE,
 });
+
+const getWithFallback = async <T>(paths: string[]): Promise<T> => {
+    let lastError: unknown = null;
+    for (const path of paths) {
+        try {
+            const { data } = await api.get<T>(path);
+            return data;
+        } catch (error: any) {
+            const status = error?.response?.status;
+            if (status !== 404) {
+                throw error;
+            }
+            lastError = error;
+        }
+    }
+    throw lastError ?? new Error('No se encontro endpoint disponible');
+};
+
+const postWithFallback = async <T>(paths: string[], payload: unknown): Promise<T> => {
+    let lastError: unknown = null;
+    for (const path of paths) {
+        try {
+            const { data } = await api.post<T>(path, payload);
+            return data;
+        } catch (error: any) {
+            const status = error?.response?.status;
+            if (status !== 404) {
+                throw error;
+            }
+            lastError = error;
+        }
+    }
+    throw lastError ?? new Error('No se encontro endpoint disponible');
+};
+
+const getStoredUserId = (): number | null => {
+    const raw = localStorage.getItem('bolix_user_id');
+    if (!raw) return null;
+    const parsed = Number(raw);
+    return Number.isNaN(parsed) ? null : parsed;
+};
+
+const getLocalWallets = (): Wallet[] => {
+    try {
+        const raw = localStorage.getItem(LOCAL_WALLETS_KEY);
+        if (!raw) return [];
+        return JSON.parse(raw) as Wallet[];
+    } catch {
+        return [];
+    }
+};
+
+const setLocalWallets = (wallets: Wallet[]) => {
+    localStorage.setItem(LOCAL_WALLETS_KEY, JSON.stringify(wallets));
+};
+
+const getLocalTrades = (): Trade[] => {
+    try {
+        const raw = localStorage.getItem(LOCAL_TRADES_KEY);
+        if (!raw) return [];
+        return JSON.parse(raw) as Trade[];
+    } catch {
+        return [];
+    }
+};
+
+const setLocalTrades = (trades: Trade[]) => {
+    localStorage.setItem(LOCAL_TRADES_KEY, JSON.stringify(trades));
+};
+
+const saveLocalTradeAndUpdateWallet = (payload: {
+    tipo: 'COMPRA' | 'VENTA' | 'FONDEO';
+    monto_usdt: number;
+    precio_tasa: number;
+    wallet_id?: number;
+    moneda?: string;
+}) => {
+    const trades = getLocalTrades();
+    const nextId = trades.length > 0 ? Math.max(...trades.map((t) => t.id)) + 1 : 1;
+    const newTrade: Trade = {
+        id: nextId,
+        tipo: payload.tipo,
+        monto_usdt: payload.monto_usdt,
+        precio_tasa: payload.precio_tasa,
+        fecha: new Date().toISOString(),
+        wallet_id: payload.wallet_id,
+        moneda: payload.moneda,
+    };
+    setLocalTrades([newTrade, ...trades]);
+
+    const wallets = getLocalWallets();
+    const walletIndex = payload.wallet_id
+        ? wallets.findIndex((w) => w.id === payload.wallet_id)
+        : wallets.findIndex((w) => w.es_principal_usdt);
+    if (walletIndex >= 0) {
+        const sign = payload.tipo === 'VENTA' ? -1 : 1;
+        const updated = [...wallets];
+        updated[walletIndex] = {
+            ...updated[walletIndex],
+            saldo: Number(updated[walletIndex].saldo) + sign * payload.monto_usdt,
+        };
+        setLocalWallets(updated);
+    }
+    return { status: 'local_fallback', trade_id: nextId };
+};
+
+type ApiCapabilities = {
+    walletsAvailable: boolean | null;
+    tradesAvailable: boolean | null;
+};
+
+const getCapabilities = (): ApiCapabilities => {
+    try {
+        const raw = localStorage.getItem(CAPABILITIES_KEY);
+        if (!raw) return { walletsAvailable: null, tradesAvailable: null };
+        return JSON.parse(raw) as ApiCapabilities;
+    } catch {
+        return { walletsAvailable: null, tradesAvailable: null };
+    }
+};
+
+const setCapabilities = (next: Partial<ApiCapabilities>) => {
+    const current = getCapabilities();
+    localStorage.setItem(CAPABILITIES_KEY, JSON.stringify({ ...current, ...next }));
+};
 
 // 2. Interceptor para inyectar el Token (Soluciona los errores 401)
 api.interceptors.request.use((config) => {
@@ -79,10 +208,12 @@ export interface Trade {
     monto_usdt: number;
     precio_tasa: number;
     fecha: string;
+    wallet_id?: number;
+    moneda?: string;
 }
 
 export interface TradeResponse {
-    saldo_actual: number;
+    saldo_actual_usdt: number;
     historial: Trade[];
 }
 
@@ -104,15 +235,248 @@ export const fetchStatus = async (): Promise<StatusResponse> => {
 };
 
 export const fetchWallets = async (): Promise<Wallet[]> => {
-    // Importante el slash final si tu router en FastAPI lo requiere
-    const { data } = await api.get<Wallet[]>('/wallets/');
-    return data;
+    if (FORCE_LOCAL_WALLET_TRADES) {
+        return getLocalWallets();
+    }
+    const caps = getCapabilities();
+    if (caps.walletsAvailable === false) {
+        return getLocalWallets();
+    }
+    try {
+        const data = await getWithFallback<Wallet[]>([
+            '/wallets/',
+            '/wallets',
+        ]);
+        setCapabilities({ walletsAvailable: true });
+        return data;
+    } catch (error: any) {
+        if (error?.response?.status === 404) {
+            setCapabilities({ walletsAvailable: false });
+            return getLocalWallets();
+        }
+        throw error;
+    }
 };
 
 export const fetchTrades = async (): Promise<TradeResponse> => {
-    // Ruta verificada en Swagger: /trades/trades/balance
-    const { data } = await api.get<TradeResponse>('/trades/trades/balance');
-    return data;
+    const userId = getStoredUserId();
+    const localTrades = getLocalTrades();
+    if (FORCE_LOCAL_WALLET_TRADES) {
+        return {
+            saldo_actual_usdt: 0,
+            historial: localTrades,
+        };
+    }
+    const caps = getCapabilities();
+    if (caps.tradesAvailable === false) {
+        return {
+            saldo_actual_usdt: 0,
+            historial: localTrades,
+        };
+    }
+    try {
+        let data: TradeResponse;
+        if (userId) {
+            data = await getWithFallback<TradeResponse>([
+                `/trades/trades/balance/${userId}`,
+                `/trades/balance/${userId}`,
+                '/trades/balance',
+                '/trades/trades/balance',
+            ]);
+        } else {
+            data = await getWithFallback<TradeResponse>([
+                '/trades/balance',
+                '/trades/trades/balance',
+            ]);
+        }
+        setCapabilities({ tradesAvailable: true });
+        return data;
+    } catch (error: any) {
+        if (error?.response?.status === 404 || error?.response?.status === 422) {
+            setCapabilities({ tradesAvailable: false });
+            return {
+                saldo_actual_usdt: 0,
+                historial: localTrades,
+            };
+        }
+        throw error;
+    }
+};
+
+export const createWallet = async (payload: {
+    nombre: string;
+    moneda: string;
+    saldo: number;
+    es_principal_usdt: boolean;
+}): Promise<Wallet> => {
+    if (FORCE_LOCAL_WALLET_TRADES) {
+        const wallets = getLocalWallets();
+        const nextId = wallets.length > 0 ? Math.max(...wallets.map((w) => w.id)) + 1 : 1;
+        const newWallet: Wallet = {
+            id: nextId,
+            nombre: payload.nombre,
+            moneda: payload.moneda,
+            saldo: payload.saldo,
+            es_principal_usdt: payload.es_principal_usdt,
+        };
+        setLocalWallets([...wallets, newWallet]);
+        return newWallet;
+    }
+    const caps = getCapabilities();
+    if (caps.walletsAvailable === false) {
+        const wallets = getLocalWallets();
+        const nextId = wallets.length > 0 ? Math.max(...wallets.map((w) => w.id)) + 1 : 1;
+        const newWallet: Wallet = {
+            id: nextId,
+            nombre: payload.nombre,
+            moneda: payload.moneda,
+            saldo: payload.saldo,
+            es_principal_usdt: payload.es_principal_usdt,
+        };
+        setLocalWallets([...wallets, newWallet]);
+        return newWallet;
+    }
+    try {
+        const data = await postWithFallback<Wallet>(['/wallets/', '/wallets'], payload);
+        setCapabilities({ walletsAvailable: true });
+        return data;
+    } catch (error: any) {
+        if (error?.response?.status !== 404) {
+            throw error;
+        }
+        setCapabilities({ walletsAvailable: false });
+        const wallets = getLocalWallets();
+        const nextId = wallets.length > 0 ? Math.max(...wallets.map((w) => w.id)) + 1 : 1;
+        const newWallet: Wallet = {
+            id: nextId,
+            nombre: payload.nombre,
+            moneda: payload.moneda,
+            saldo: payload.saldo,
+            es_principal_usdt: payload.es_principal_usdt,
+        };
+        setLocalWallets([...wallets, newWallet]);
+        return newWallet;
+    }
+};
+
+export const updateWallet = async (
+    walletId: number,
+    payload: {
+        nombre: string;
+        moneda: string;
+        saldo: number;
+        es_principal_usdt: boolean;
+    }
+): Promise<Wallet> => {
+    if (FORCE_LOCAL_WALLET_TRADES) {
+        const wallets = getLocalWallets();
+        const updated = wallets.map((w) =>
+            w.id === walletId ? { ...w, ...payload } : w
+        );
+        setLocalWallets(updated);
+        return updated.find((w) => w.id === walletId) as Wallet;
+    }
+    const caps = getCapabilities();
+    if (caps.walletsAvailable === false) {
+        const wallets = getLocalWallets();
+        const updated = wallets.map((w) =>
+            w.id === walletId ? { ...w, ...payload } : w
+        );
+        setLocalWallets(updated);
+        return updated.find((w) => w.id === walletId) as Wallet;
+    }
+    try {
+        const { data } = await api.patch<Wallet>(`/wallets/${walletId}`, payload);
+        setCapabilities({ walletsAvailable: true });
+        return data;
+    } catch (error: any) {
+        if (error?.response?.status !== 404) {
+            throw error;
+        }
+        setCapabilities({ walletsAvailable: false });
+        const wallets = getLocalWallets();
+        const updated = wallets.map((w) =>
+            w.id === walletId ? { ...w, ...payload } : w
+        );
+        setLocalWallets(updated);
+        return updated.find((w) => w.id === walletId) as Wallet;
+    }
+};
+
+export const registrarTrade = async (payload: {
+    tipo: 'COMPRA' | 'VENTA' | 'FONDEO';
+    monto_usdt: number;
+    precio_tasa: number;
+    wallet_id?: number;
+    moneda?: string;
+}) => {
+    if (FORCE_LOCAL_WALLET_TRADES) {
+        return saveLocalTradeAndUpdateWallet(payload);
+    }
+    const caps = getCapabilities();
+    if (caps.tradesAvailable === false) {
+        return saveLocalTradeAndUpdateWallet(payload);
+    }
+    const storedUserId = localStorage.getItem('bolix_user_id');
+    const payloadCompat = {
+        ...payload,
+        user_id: storedUserId ? Number(storedUserId) : undefined,
+    };
+    try {
+        const result = await postWithFallback(
+            ['/trades/registrar', '/trades/trades/registrar'],
+            payloadCompat
+        );
+        setCapabilities({ tradesAvailable: true });
+        return result;
+    } catch (error: any) {
+        const status = error?.response?.status;
+        if (status !== 404 && status !== 422) {
+            throw error;
+        }
+        setCapabilities({ tradesAvailable: false });
+        return saveLocalTradeAndUpdateWallet(payload);
+    }
+};
+
+export interface SmokeTestResult {
+    endpoint: string;
+    ok: boolean;
+    status: number | null;
+    message: string;
+}
+
+export const smokeTestBolixEndpoints = async (): Promise<SmokeTestResult[]> => {
+    const candidates = [
+        '/status',
+        '/wallets/',
+        '/wallets',
+        '/trades/balance',
+        '/trades/trades/balance',
+    ];
+
+    const results = await Promise.all(
+        candidates.map(async (endpoint) => {
+            try {
+                const response = await api.get(endpoint);
+                return {
+                    endpoint,
+                    ok: true,
+                    status: response.status,
+                    message: 'OK',
+                } satisfies SmokeTestResult;
+            } catch (error: any) {
+                return {
+                    endpoint,
+                    ok: false,
+                    status: error?.response?.status ?? null,
+                    message: error?.response?.statusText ?? error?.message ?? 'Error',
+                } satisfies SmokeTestResult;
+            }
+        })
+    );
+
+    return results;
 };
 
 export const sendChatMessage = async (mensaje: string): Promise<{ respuesta: string }> => {

@@ -11,7 +11,7 @@ class WalletBase(BaseModel):
 
 # ESTA ES LA CLASE QUE FALTA SEGÚN EL ERROR
 class WalletCreate(WalletBase):
-    user_id: int
+    pass
 
 class WalletResponse(WalletBase):
     id: int
