@@ -27,6 +27,8 @@ interface Transaction {
 
 export default function WalletPage() {
   const [loading, setLoading] = useState(true)
+  const [savingWallet, setSavingWallet] = useState(false)
+  const [savingTrade, setSavingTrade] = useState(false)
   const [wallets, setWallets] = useState<Wallet[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [showWalletForm, setShowWalletForm] = useState(false)
@@ -131,6 +133,7 @@ export default function WalletPage() {
       return
     }
 
+    setSavingWallet(true)
     try {
       if (editingWalletId) {
         await updateWallet(Number(editingWalletId), {
@@ -155,6 +158,8 @@ export default function WalletPage() {
     } catch (error) {
       console.error('Error al guardar wallet:', error)
       alert('Error al guardar la billetera')
+    } finally {
+      setSavingWallet(false)
     }
   }
 
@@ -205,6 +210,8 @@ export default function WalletPage() {
       return;
     }
     const walletSeleccionada = wallets.find((w) => w.id === tradeWalletId)
+    
+    setSavingTrade(true)
     try {
       await registrarTrade({
         tipo: tradeTipo,
@@ -220,6 +227,8 @@ export default function WalletPage() {
     } catch (error: any) {
       const detail = error?.response?.data?.detail
       console.error('No se pudo registrar el movimiento:', detail || error);
+    } finally {
+      setSavingTrade(false)
     }
   };
 
@@ -303,9 +312,11 @@ export default function WalletPage() {
 
             <button
               onClick={handleGuardarWallet}
-              className="h-12 mt-2 text-base rounded-2xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-900/20 active:scale-[0.98] transition-all"
+              disabled={savingWallet}
+              className={`h-12 mt-2 text-base rounded-2xl text-white font-bold shadow-lg transition-all active:scale-[0.98]
+                ${savingWallet ? 'bg-zinc-700 opacity-50 cursor-not-allowed' : 'bg-emerald-600 shadow-emerald-900/20 hover:bg-emerald-500'}`}
             >
-              {editingWalletId ? 'Guardar cambios' : 'Crear Billetera'}
+              {savingWallet ? 'Guardando...' : (editingWalletId ? 'Guardar cambios' : 'Crear Billetera')}
             </button>
           </div>
         </div>
@@ -423,9 +434,11 @@ export default function WalletPage() {
 
               <button
                 onClick={handleRegistrarFondeo}
-                className="h-12 text-base rounded-2xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-900/20 active:scale-[0.98] transition-all"
+                disabled={savingTrade}
+                className={`h-12 text-base rounded-2xl text-white font-bold shadow-lg transition-all active:scale-[0.98]
+                  ${savingTrade ? 'bg-zinc-700 opacity-50 cursor-not-allowed' : 'bg-emerald-600 shadow-emerald-900/20 hover:bg-emerald-500'}`}
               >
-                Confirmar Registro
+                {savingTrade ? 'Registrando...' : 'Confirmar Registro'}
               </button>
             </div>
           </div>
