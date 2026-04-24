@@ -10,5 +10,5 @@ class Trade(Base):
     tipo = Column(String) # "COMPRA" o "VENTA"
     monto_usdt = Column(Numeric(10, 2), nullable=False)
     precio_tasa = Column(Numeric(10, 2), nullable=False) # A cuánto estaba el dólar
-    wallet_id = Column(Integer, ForeignKey("wallets.id"), nullable=True) # ID de la billetera (opcional por ahora)
+    wallet_id = Column(Integer, ForeignKey("wallets.id", ondelete="SET NULL"), nullable=True) # ID de la billetera (opcional por ahora)
     fecha = Column(DateTime(timezone=True), server_default=func.now())
