@@ -1,6 +1,4 @@
 import os
-from datetime import datetime, timedelta
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -9,7 +7,7 @@ from sqlalchemy import select
 import bcrypt
 from dotenv import load_dotenv
 
-from jose import JWTError, jwt
+from jose import jwt
 
 # Importes de tu estructura local
 from app.database import get_db
@@ -24,9 +22,6 @@ load_dotenv()
 # ── CONFIGURACIÓN DE SEGURIDAD ──────────────────────────────────────────────
 SECRET_KEY = os.getenv("JWT_SECRET")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 horas
-
-
 # ── FUNCIONES INTERNAS ──────────────────────────────────────────────────────
 def get_password_hash(password: str):
     pwd_bytes = password.encode('utf-8')
@@ -44,8 +39,6 @@ def verify_password(plain_password: str, hashed_password: str):
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 # ── ENDPOINTS ───────────────────────────────────────────────────────────────
