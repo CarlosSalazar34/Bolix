@@ -13,10 +13,12 @@ from middleware.auth import get_current_user
 router = APIRouter(prefix="/trades", tags=["Transacciones"])
 
 # Esquema limpio: El usuario ya no envía user_id, se extrae del Token
+# Esquema limpio: El usuario ya no envía user_id, se extrae del Token
 class TradeCreate(BaseModel):
     tipo: str  # "COMPRA", "VENTA", "FONDEO"
     monto_usdt: float
     precio_tasa: float
+    wallet_id: Optional[int] = None
 
 @router.post("/registrar")
 async def registrar_trade(
@@ -24,19 +26,28 @@ async def registrar_trade(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    # 1. Buscar la wallet principal del usuario autenticado
-    query_wallet = await db.execute(
-        select(Wallet).filter(
-            Wallet.user_id == current_user.id, 
-            Wallet.es_principal_usdt == True
+    # 1. Buscar la wallet (la proporcionada o la principal por defecto)
+    if trade.wallet_id:
+        query_wallet = await db.execute(
+            select(Wallet).filter(
+                Wallet.user_id == current_user.id, 
+                Wallet.id == trade.wallet_id
+            )
         )
-    )
+    else:
+        query_wallet = await db.execute(
+            select(Wallet).filter(
+                Wallet.user_id == current_user.id, 
+                Wallet.es_principal_usdt == True
+            )
+        )
+    
     wallet = query_wallet.scalars().first()
 
     if not wallet:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail="No tienes una billetera principal configurada"
+            detail="Billetera no encontrada o no configurada"
         )
 
     monto_decimal = Decimal(str(trade.monto_usdt))
@@ -50,7 +61,7 @@ async def registrar_trade(
         if wallet.saldo < monto_decimal:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, 
-                detail="Saldo insuficiente en la billetera principal"
+                detail="Saldo insuficiente en la billetera seleccionada"
             )
         wallet.saldo -= monto_decimal
     else:
@@ -64,7 +75,8 @@ async def registrar_trade(
         user_id=current_user.id,
         tipo=tipo_upper,
         monto_usdt=trade.monto_usdt,
-        precio_tasa=trade.precio_tasa
+        precio_tasa=trade.precio_tasa,
+        wallet_id=wallet.id # Guardamos la relación
     )
 
     # 4. Guardar cambios (Transacción atómica)
@@ -76,13 +88,14 @@ async def registrar_trade(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-            detail="Error al procesar el trade en la base de datos"
+            detail=f"Error al procesar el trade: {str(e)}"
         )
 
     return {
         "status": "success",
         "trade_id": nueva_trans.id,
-        "nuevo_saldo_wallet": wallet.saldo
+        "nuevo_saldo_wallet": wallet.saldo,
+        "wallet": wallet.nombre
     }
 
 @router.get("/balance")
