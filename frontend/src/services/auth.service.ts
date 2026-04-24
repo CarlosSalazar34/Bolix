@@ -1,18 +1,20 @@
 export const authService = {
     setToken: (token: string) => {
-        localStorage.setItem('token', token);
+        localStorage.setItem('bolix_token', token);
     },
 
     getToken: () => {
-        return localStorage.getItem('token');
+        return localStorage.getItem('bolix_token');
     },
 
     logout: () => {
-        localStorage.removeItem('token');
+        localStorage.removeItem('bolix_token');
+        localStorage.removeItem('bolix_username');
+        localStorage.removeItem('bolix_user_id');
         // Quitamos window.location.href para que no recargue la página violentamente
     },
 
     isAuthenticated: () => {
-        return !!localStorage.getItem('token');
+        return !!localStorage.getItem('bolix_token');
     }
 };
