@@ -46,6 +46,7 @@ export interface StatusResponse {
 // ── API Calls ──────────────────────────────────────────────────────────────
 export async function fetchTasas(): Promise<TasaResponse> {
   const res = await fetch(`${API_BASE}/tasa`, { headers: getHeaders() })
+  if (res.status === 401) throw new Error('Unauthorized')
   if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
   const data = await res.json()
   if (data.error) throw new Error(data.error)
@@ -55,12 +56,14 @@ export async function fetchTasas(): Promise<TasaResponse> {
 
 export async function fetchHistorial(): Promise<HistorialResponse> {
   const res = await fetch(`${API_BASE}/historial`, { headers: getHeaders() })
+  if (res.status === 401) throw new Error('Unauthorized')
   if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
   return res.json()
 }
 
 export async function fetchStatus(): Promise<StatusResponse> {
   const res = await fetch(`${API_BASE}/status`, { headers: getHeaders() })
+  if (res.status === 401) throw new Error('Unauthorized')
   if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
   return res.json()
 }

@@ -14,7 +14,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 
 function AppContent() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, logout } = useAuth()
   const [authView, setAuthView] = useState<'login' | 'register'>('login')
 
   const [tab, setTab] = useState<Tab>('home')
@@ -28,7 +28,10 @@ function AppContent() {
     try {
       const data = await fetchTasas()
       setTasas(data)
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.message === 'Unauthorized') {
+        logout()
+      }
       // HomePage maneja su propio error, aquí solo para el sheet
     }
   }, [isAuthenticated])

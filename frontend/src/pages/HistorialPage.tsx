@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import HistoryItem from '../components/HistoryItem'
 import { fetchHistorial } from '../services/api'
 import type { HistorialItem } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 export default function HistorialPage() {
   const [historial, setHistorial] = useState<HistorialItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { logout } = useAuth()
 
   useEffect(() => {
     const load = async () => {
@@ -14,7 +16,12 @@ export default function HistorialPage() {
         const data = await fetchHistorial()
         setHistorial(data.data || [])
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error de conexión')
+        const msg = err instanceof Error ? err.message : 'Error de conexión'
+        if (msg === 'Unauthorized') {
+          logout()
+        } else {
+          setError(msg)
+        }
       } finally {
         setLoading(false)
       }

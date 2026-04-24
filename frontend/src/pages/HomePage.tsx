@@ -7,6 +7,7 @@ import HistoryItem from '../components/HistoryItem'
 import { fetchTasas, fetchHistorial } from '../services/api'
 import type { TasaResponse, HistorialItem } from '../services/api'
 import { registerPushNotifications, sendSubscriptionToBackend } from '../services/pushService'
+import { useAuth } from '../context/AuthContext'
 
 export default function HomePage() {
   const [tasas, setTasas] = useState<TasaResponse | null>(null)
@@ -15,6 +16,7 @@ export default function HomePage() {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const { logout } = useAuth()
 
   const loadData = useCallback(async () => {
     try {
@@ -27,7 +29,12 @@ export default function HomePage() {
       setHistorial(histData.data || [])
       setLastUpdate(new Date())
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error de conexión')
+      const msg = err instanceof Error ? err.message : 'Error de conexión'
+      if (msg === 'Unauthorized') {
+        logout()
+      } else {
+        setError(msg)
+      }
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -53,8 +60,12 @@ export default function HomePage() {
           }
         }
       } catch (err) {
-        // Fallar silenciosamente para no interrumpir la experiencia del usuario
-        console.warn('Push registration failed:', err)
+        if (err instanceof Error && err.message === 'Unauthorized') {
+          logout()
+        } else {
+          // Fallar silenciosamente para no interrumpir la experiencia del usuario
+          console.warn('Push registration failed:', err)
+        }
       }
     }
 
