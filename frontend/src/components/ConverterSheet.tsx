@@ -165,7 +165,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
                       type="number"
                       value={v}
                       onChange={(e) => handleUpdateAmount(i, e.target.value)}
-                      className="w-full py-2 bg-zinc-950 border border-emerald-500/50 rounded-xl text-center text-sm text-white outline-none animate-pulse"
+                      className="w-full py-2 bg-zinc-950 border border-emerald-500/50 rounded-xl text-center text-base text-white outline-none animate-pulse"
                     />
                   ) : (
                     <button

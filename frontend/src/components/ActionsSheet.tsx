@@ -42,6 +42,26 @@ export default function ActionsSheet({ amount, result, currency, onEditQuickAmou
     load()
   }, [])
 
+  // Función para construir y abrir el mensaje de WhatsApp
+  const openWhatsApp = (pagoBanco: string, pagoCedula: string, pagoTelefono: string) => {
+    let text = `*BOLIX - Orden de Pago*\n\n`
+    text += `Total a pagar: *Bs. ${result}*\n`
+    text += `Referencia: ${amount} ${currency}\n\n`
+    text += `*Datos de Pago Móvil:*\n`
+    text += `🏦 Banco: ${pagoBanco}\n`
+    text += `🆔 Cédula: ${pagoCedula}\n`
+    text += `📱 Teléfono: ${pagoTelefono}\n\n`
+    text += `_Generado por Bolix_`
+    
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
+    const win = window.open(whatsappUrl, '_blank')
+    if (win) {
+      win.focus()
+    } else {
+      window.location.href = whatsappUrl
+    }
+  }
+
   const handleSave = async () => {
     if (!form.banco || !form.telefono || !form.cedula) {
       alert("Por favor rellena todos los campos")
@@ -56,6 +76,10 @@ export default function ActionsSheet({ amount, result, currency, onEditQuickAmou
       })
       setProfile(updated)
       setShowDialog(false)
+      
+      // Abrir WhatsApp inmediatamente después de guardar satisfactoriamente
+      openWhatsApp(form.banco, form.cedula, form.telefono)
+      
     } catch (e) {
       alert("Error al guardar en el servidor")
     } finally {
@@ -64,42 +88,14 @@ export default function ActionsSheet({ amount, result, currency, onEditQuickAmou
   }
 
   const handleCobrar = () => {
-    console.log("Intentando cobrar...", { result, profile, isConfigured })
-    
-    if (!result) {
-      console.warn("No hay resultado para cobrar")
-      return
-    }
-    
-    // Si aún está cargando el perfil, esperamos o asumimos que no está configurado
-    if (fetchingProfile) return;
+    if (!result || fetchingProfile) return
 
     if (!profile?.pago_banco || !profile?.pago_telefono || !profile?.pago_cedula) {
-      console.log("Faltan datos de pago, abriendo diálogo")
       setShowDialog(true)
       return
     }
     
-    let text = `*BOLIX - Orden de Pago*\n\n`
-    text += `Total a pagar: *Bs. ${result}*\n`
-    text += `Referencia: ${amount} ${currency}\n\n`
-    text += `*Datos de Pago Móvil:*\n`
-    text += `🏦 Banco: ${profile.pago_banco}\n`
-    text += `🆔 Cédula: ${profile.pago_cedula}\n`
-    text += `📱 Teléfono: ${profile.pago_telefono}\n\n`
-    text += `_Generado por Bolix_`
-    
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
-    console.log("Abriendo WhatsApp:", whatsappUrl)
-    
-    // Abrir en pestaña nueva
-    const win = window.open(whatsappUrl, '_blank')
-    if (win) {
-      win.focus()
-    } else {
-      // Fallback si el pop-up es bloqueado
-      window.location.href = whatsappUrl
-    }
+    openWhatsApp(profile.pago_banco, profile.pago_cedula, profile.pago_telefono)
   }
 
   const isConfigured = !!(profile?.pago_banco && profile?.pago_cedula && profile?.pago_telefono)
@@ -163,7 +159,7 @@ export default function ActionsSheet({ amount, result, currency, onEditQuickAmou
                   disabled={loading}
                   className="flex-1 h-12 rounded-2xl bg-emerald-500 text-zinc-950 font-bold text-sm active:scale-95 transition-all disabled:opacity-50"
                 >
-                  {loading ? 'Guardando...' : 'Guardar'}
+                  {loading ? 'Guardando...' : 'Guardar y Cobrar'}
                 </button>
               </div>
             </div>
