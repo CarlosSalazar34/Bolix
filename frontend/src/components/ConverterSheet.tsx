@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import BottomSheet from './BottomSheet'
 import type { TasaResponse } from '../services/api'
+import ActionsSheet from './ActionsSheet'
 
 type Currency = 'USD' | 'USDT' | 'EUR'
 
@@ -42,15 +43,42 @@ interface ConverterSheetProps {
   tasas: TasaResponse | null
 }
 
+const DEFAULT_AMOUNTS = [1, 5, 10, 20, 50, 100, 500, 1000]
+
 export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetProps) {
   const [selected, setSelected] = useState<Currency>('USD')
   const [amount, setAmount] = useState('')
   const [direction, setDirection] = useState<'toBs' | 'fromBs'>('toBs')
+  
+  // Gestión de montos personalizados
+  const [quickAmounts, setQuickAmounts] = useState<number[]>(DEFAULT_AMOUNTS)
+  const [isEditingAmounts, setIsEditingAmounts] = useState(false)
+
+  // Cargar preferencias
+  useEffect(() => {
+    const saved = localStorage.getItem('bolix_quick_amounts')
+    if (saved) {
+      setQuickAmounts(JSON.parse(saved))
+    }
+  }, [])
+
+  const saveQuickAmounts = (newAmounts: number[]) => {
+    setQuickAmounts(newAmounts)
+    localStorage.setItem('bolix_quick_amounts', JSON.stringify(newAmounts))
+  }
+
+  const handleUpdateAmount = (index: number, value: string) => {
+    const num = parseInt(value) || 0
+    const next = [...quickAmounts]
+    next[index] = num
+    saveQuickAmounts(next)
+  }
 
   // Reset al abrir
   useEffect(() => {
     if (open) {
       setAmount('')
+      setIsEditingAmounts(false)
     }
   }, [open])
 
@@ -118,21 +146,40 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
         {/* Quick amounts */}
         {direction === 'toBs' && (
           <div>
-            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2">Rápido</p>
-            <div className='mb-3'></div>
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Montos Rápidos</p>
+              {isEditingAmounts && (
+                 <button 
+                 onClick={() => setIsEditingAmounts(false)}
+                 className="text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-emerald-500 text-zinc-950 transition-colors"
+               >
+                 Guardar Cambios
+               </button>
+              )}
+            </div>
             <div className="grid grid-cols-4 gap-2">
-              {[1, 5, 10, 20, 50, 100, 500, 1000].map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setAmount(String(v))}
-                  className={`py-2 rounded-xl text-sm font-medium transition-all
-                    ${amount === String(v)
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                      : 'bg-zinc-800/60 text-zinc-300 border border-zinc-700/40 hover:border-zinc-600'
-                    }`}
-                >
-                  {v}
-                </button>
+              {quickAmounts.map((v, i) => (
+                <div key={i} className="relative">
+                  {isEditingAmounts ? (
+                    <input
+                      type="number"
+                      value={v}
+                      onChange={(e) => handleUpdateAmount(i, e.target.value)}
+                      className="w-full py-2 bg-zinc-950 border border-emerald-500/50 rounded-xl text-center text-sm text-white outline-none animate-pulse"
+                    />
+                  ) : (
+                    <button
+                      onClick={() => setAmount(String(v))}
+                      className={`w-full py-2 rounded-xl text-sm font-medium transition-all
+                        ${amount === String(v)
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+                          : 'bg-zinc-800/60 text-zinc-300 border border-zinc-700/40'
+                        }`}
+                    >
+                      {v}
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -140,8 +187,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
 
         {/* Selector de moneda */}
         <div>
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2">Moneda</p>
-          <div className='mt-3'></div>
+          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-3">Moneda</p>
           <div className="flex gap-2">
             {CURRENCIES.map((c) => {
               const active = selected === c.id
@@ -185,6 +231,13 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
           </div>
         )}
 
+        <ActionsSheet 
+          amount={amount} 
+          result={result} 
+          currency={selected} 
+          onEditQuickAmounts={() => setIsEditingAmounts(!isEditingAmounts)}
+        />
+
         {/* Dirección de conversión */}
         <div className="flex items-center gap-3 mb-10">
           <button
@@ -196,8 +249,6 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
             <span className="text-zinc-300 text-sm font-medium">{toLabel}</span>
           </button>
         </div>
-
-
       </div>
     </BottomSheet>
   )

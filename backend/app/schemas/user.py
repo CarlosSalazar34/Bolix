@@ -13,7 +13,16 @@ class UserOut(BaseModel):
     id: int
     username: str
     email: EmailStr
+    pago_banco: Optional[str] = None
+    pago_telefono: Optional[str] = None
+    pago_cedula: Optional[str] = None
     fecha_registro: datetime
 
     class Config:
         from_attributes = True
+
+# Esquema para actualizar solo datos de pago
+class UserUpdatePago(BaseModel):
+    pago_banco: str
+    pago_telefono: str
+    pago_cedula: str

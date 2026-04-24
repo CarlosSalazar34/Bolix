@@ -173,6 +173,15 @@ export interface Wallet {
     es_principal_usdt: boolean;
 }
 
+export interface UserProfile {
+    id: number;
+    username: string;
+    email: string;
+    pago_banco?: string;
+    pago_telefono?: string;
+    pago_cedula?: string;
+}
+
 export interface Trade {
     id: number;
     tipo: 'COMPRA' | 'VENTA' | 'FONDEO';
@@ -202,6 +211,20 @@ export const fetchHistorial = async (): Promise<HistorialResponse> => {
 
 export const fetchStatus = async (): Promise<StatusResponse> => {
     const { data } = await api.get<StatusResponse>('/status');
+    return data;
+};
+
+export const fetchUserProfile = async (): Promise<UserProfile> => {
+    const { data } = await api.get<UserProfile>('/auth/me');
+    return data;
+};
+
+export const updateUserPaymentInfo = async (payload: {
+    pago_banco: string;
+    pago_telefono: string;
+    pago_cedula: string;
+}): Promise<UserProfile> => {
+    const { data } = await api.patch<UserProfile>('/auth/update-pago', payload);
     return data;
 };
 

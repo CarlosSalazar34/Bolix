@@ -12,8 +12,9 @@ from jose import jwt
 # Importes de tu estructura local
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserOut
+from app.schemas.user import UserCreate, UserOut, UserUpdatePago
 from app.schemas.token import Token
+from middleware.auth import get_current_user
 
 router = APIRouter()
 
@@ -107,3 +108,27 @@ async def login(
         "username": user.username,
         "id": user.id
     }
+
+@router.get("/me", response_model=UserOut)
+async def get_me(current_user: User = Depends(get_current_user)):
+    """Obtiene el perfil completo del usuario autenticado."""
+    return current_user
+
+@router.patch("/update-pago", response_model=UserOut)
+async def update_pago(
+    pago_data: UserUpdatePago, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Actualiza los datos de pago móvil del usuario."""
+    current_user.pago_banco = pago_data.pago_banco
+    current_user.pago_telefono = pago_data.pago_telefono
+    current_user.pago_cedula = pago_data.pago_cedula
+    
+    try:
+        await db.commit()
+        await db.refresh(current_user)
+        return current_user
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Error al actualizar datos de pago.")
