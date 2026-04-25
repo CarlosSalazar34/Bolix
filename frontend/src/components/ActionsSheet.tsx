@@ -175,7 +175,7 @@ export default function ActionsSheet({ amount, result, currency, onEditQuickAmou
                     </div>
                     <div className="text-left">
                         <p className="text-white text-sm font-bold">Monto rápido</p>
-                        <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-tight">Editar botones {currency}</p>
+                        <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-tight">Editar {currency}</p>
                     </div>
                 </button>
 

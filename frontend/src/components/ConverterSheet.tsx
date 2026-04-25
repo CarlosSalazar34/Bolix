@@ -3,7 +3,7 @@ import BottomSheet from './BottomSheet'
 import type { TasaResponse } from '../services/api'
 import ActionsSheet from './ActionsSheet'
 
-type Currency = 'USD' | 'USDT' | 'EUR'
+type Currency = 'USD' | 'USDT' | 'EUR' | 'PRO'
 
 interface CurrencyOption {
   id: Currency
@@ -35,6 +35,13 @@ const CURRENCIES: CurrencyOption[] = [
     icon: '🇪🇺',
     getRate: (t) => t.euro_bcv,
   },
+  {
+    id: "PRO",
+    label: "Promedio",
+    sublabel: "Promedio BCV y USDT",
+    icon: "📊",
+    getRate: (t) => t.promedio,
+  }
 ]
 
 interface ConverterSheetProps {
@@ -126,7 +133,9 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
         <div className={`rounded-2xl overflow-hidden transition-all duration-300 ${result ? 'opacity-100' : 'opacity-40'}`}>
           <div className="bg-gradient-to-br from-emerald-600 to-green-800 p-5 relative">
             <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/5 -translate-y-8 translate-x-8" />
-            <p className="text-emerald-100 text-sm font-medium">{selected === "USD" ? "Cambio en USD" : selected === "EUR" ? "Cambio en EUR" : selected === "USDT" ? "Cambio en USDT" : "Cambio en Bs"}</p>
+            <p className="text-emerald-100 text-sm font-medium">
+              {direction === 'toBs' ? 'Cambio a Bolívares' : `Cambio a ${currentOption.label}`}
+            </p>
             <div className="flex items-end gap-2 mt-1">
               <span className="text-4xl font-bold text-white tracking-tight">
                 {result ? `${toLabel === 'Bs' ? 'Bs.' : ''} ${result}` : '—'}
@@ -188,6 +197,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
         {/* Selector de moneda */}
         <div>
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-3">Moneda</p>
+          <div className="mb-3" />
           <div className="flex gap-2">
             {CURRENCIES.map((c) => {
               const active = selected === c.id
