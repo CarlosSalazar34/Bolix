@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import BottomSheet from './BottomSheet'
-import type { TasaResponse } from '../services/api'
+import { fetchUserProfile, type TasaResponse, type UserProfile } from '../services/api'
 import ActionsSheet from './ActionsSheet'
 
 type Currency = 'USD' | 'USDT' | 'EUR' | 'PRO' | 'OTRO'
@@ -68,6 +68,16 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
   // Montos rápidos personalizables
   const [quickAmounts, setQuickAmounts] = useState<number[]>(DEFAULT_AMOUNTS)
   const [isEditingAmounts, setIsEditingAmounts] = useState(false)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+
+  // Cargar perfil para Pago Móvil
+  useEffect(() => {
+    if (open) {
+      fetchUserProfile()
+        .then(setProfile)
+        .catch(err => console.error('Error fetching profile for share:', err))
+    }
+  }, [open])
 
   // Cargar preferencias guardadas
   useEffect(() => {
@@ -269,6 +279,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
           amount={amount}
           result={result}
           currency={selected}
+          profile={profile}
           onEditQuickAmounts={() => setIsEditingAmounts(!isEditingAmounts)}
         />
 
