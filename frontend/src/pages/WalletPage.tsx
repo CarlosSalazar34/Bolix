@@ -387,51 +387,16 @@ export default function WalletPage() {
               <h3 className="text-sm font-bold text-white uppercase tracking-widest">Registrar Movimiento</h3>
               <button onClick={() => setShowTradeForm(false)} className="text-zinc-500 hover:text-red-400 p-1">✕</button>
             </div>
-
-            <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Operación</label>
-                  <select
-                    value={tradeTipo}
-                    onChange={(e) => setTradeTipo(e.target.value as 'COMPRA' | 'VENTA' | 'FONDEO')}
-                    className="w-full h-11 text-base rounded-xl bg-zinc-950 border border-zinc-800 px-3 text-white outline-none"
-                  >
-                    <option value="FONDEO">📥 Fondeo</option>
-                    <option value="COMPRA">💵 Compra</option>
-                    <option value="VENTA">💰 Venta</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Wallet</label>
-                  <select
-                    value={tradeWalletId}
-                    onChange={(e) => setTradeWalletId(e.target.value)}
-                    className="w-full h-11 text-base rounded-xl bg-zinc-950 border border-zinc-800 px-3 text-white outline-none"
-                  >
-                    <option value="">Seleccionar...</option>
-                    {wallets.map((w) => (
-                      <option key={w.id} value={w.id}>{w.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Monto en USDT</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    value={tradeMonto}
-                    onChange={(e) => setTradeMonto(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full h-12 text-base rounded-2xl bg-zinc-950 border border-zinc-800 px-4 text-white outline-none pr-12 font-bold"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold text-xs">₮</span>
-                </div>
-              </div>
-
+            <div className="flex items-center gap-2">
+              <input
+                value={tradeMonto}
+                onChange={(e) => setTradeMonto(e.target.value)}
+                placeholder={tradeWalletId ? 
+                  `Monto en ${wallets.find(w => w.id === tradeWalletId)?.moneda || 'USDT'}` : 
+                  "Monto"
+                }
+                className="h-9 rounded-lg bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
+              />
               <button
                 onClick={handleRegistrarFondeo}
                 disabled={savingTrade}

@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Numeric, Boolean, DateTime, ForeignKey
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from app.database import Base 
 
 class Wallet(Base):
@@ -14,3 +15,6 @@ class Wallet(Base):
     es_principal_usdt = Column(Boolean, default=False)
     # Coincidiendo con TIMESTAMP
     fecha_creacion = Column(DateTime, server_default=func.now())
+    
+    # Relación con gestor records
+    gestor_records = relationship("GestorRecord", back_populates="wallet")
