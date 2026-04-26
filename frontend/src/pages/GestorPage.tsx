@@ -1,53 +1,29 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { IconPlus, IconTrend } from '../components/icons'
-import { fetchTasas } from '../services/api'
-import type { TasaResponse } from '../services/api'
+import { fetchTasas, fetchWallets, fetchGestorRecords, createGestorRecord, fetchGestorCategories } from '../services/api'
+import type { TasaResponse, Wallet, GestorRecord, GestorCategory } from '../services/api'
 
-// Tipos para el Gestor
-interface GestorRecord {
-  id: number
-  tipo: 'ingreso' | 'gasto'
-  monto: number
-  categoria: string
-  descripcion: string
-  fecha: string
-  wallet: string
-  tasa_aplicada: string
-}
-
-interface GestorCategory {
-  id: number
-  nombre: string
-  icono: string
-  color: string
-  tipo: 'gasto' | 'ingreso'
-}
-
-interface Wallet {
-  id: number
-  nombre: string
-  moneda: string
-  saldo: number
-}
+// Usamos los tipos de la API directamente
 
 // Categorías predeterminadas
 const DEFAULT_CATEGORIES: GestorCategory[] = [
-  { id: 1, nombre: 'Salario', icono: '💰', color: 'blue', tipo: 'ingreso' },
-  { id: 2, nombre: 'Regalo', icono: '🎁', color: 'pink', tipo: 'ingreso' },
-  { id: 3, nombre: 'Interés', icono: '🏦', color: 'green', tipo: 'ingreso' },
-  { id: 4, nombre: 'Otros', icono: '❓', color: 'gray', tipo: 'ingreso' },
-  { id: 5, nombre: 'Salud', icono: '❤️', color: 'red', tipo: 'gasto' },
-  { id: 6, nombre: 'Ocio', icono: '🎮', color: 'purple', tipo: 'gasto' },
-  { id: 7, nombre: 'Casa', icono: '🏠', color: 'yellow', tipo: 'gasto' },
-  { id: 8, nombre: 'Café', icono: '☕', color: 'orange', tipo: 'gasto' },
-  { id: 9, nombre: 'Educación', icono: '🎓', color: 'indigo', tipo: 'gasto' },
-  { id: 10, nombre: 'Regalos', icono: '🎁', color: 'pink', tipo: 'gasto' },
-  { id: 11, nombre: 'Alimentación', icono: '🛒', color: 'green', tipo: 'gasto' },
+  { id: 1, nombre: 'Salario', icono: '💰', color: 'blue', tipo: 'ingreso', es_default: true },
+  { id: 2, nombre: 'Regalo', icono: '🎁', color: 'pink', tipo: 'ingreso', es_default: true },
+  { id: 3, nombre: 'Interés', icono: '🏦', color: 'green', tipo: 'ingreso', es_default: true },
+  { id: 4, nombre: 'Otros', icono: '❓', color: 'gray', tipo: 'ingreso', es_default: true },
+  { id: 5, nombre: 'Salud', icono: '❤️', color: 'red', tipo: 'gasto', es_default: true },
+  { id: 6, nombre: 'Ocio', icono: '🎮', color: 'purple', tipo: 'gasto', es_default: true },
+  { id: 7, nombre: 'Casa', icono: '🏠', color: 'yellow', tipo: 'gasto', es_default: true },
+  { id: 8, nombre: 'Café', icono: '☕', color: 'orange', tipo: 'gasto', es_default: true },
+  { id: 9, nombre: 'Educación', icono: '🎓', color: 'indigo', tipo: 'gasto', es_default: true },
+  { id: 10, nombre: 'Regalos', icono: '🎁', color: 'pink', tipo: 'gasto', es_default: true },
+  { id: 11, nombre: 'Alimentación', icono: '🛒', color: 'green', tipo: 'gasto', es_default: true },
 ]
 
 export default function GestorPage() {
   const [records, setRecords] = useState<GestorRecord[]>([])
   const [wallets, setWallets] = useState<Wallet[]>([])
+  const [dbCategories, setDbCategories] = useState<GestorCategory[]>([])
   const [tasas, setTasas] = useState<TasaResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -55,7 +31,7 @@ export default function GestorPage() {
   // Form state
   const [tipo, setTipo] = useState<'ingreso' | 'gasto'>('ingreso')
   const [monto, setMonto] = useState('')
-  const [categoriaId, setCategoriaId] = useState(1)
+  const [categoriaId, setCategoriaId] = useState<number | null>(null)
   const [descripcion, setDescripcion] = useState('')
   const [walletId, setWalletId] = useState('')
   const [tasaAplicada, setTasaAplicada] = useState<'bcv' | 'binance' | 'promedio' | 'otro'>('promedio')
@@ -64,30 +40,16 @@ export default function GestorPage() {
   // Cargar datos iniciales
   const loadData = useCallback(async () => {
     try {
-      const [tasasData] = await Promise.all([
-        fetchTasas()
+      const [tasasData, walletsData, recordsData, categoriesData] = await Promise.all([
+        fetchTasas(),
+        fetchWallets(),
+        fetchGestorRecords(),
+        fetchGestorCategories()
       ])
       setTasas(tasasData)
-      
-      // Mock wallets - debería venir de API
-      setWallets([
-        { id: 1, nombre: 'Banesco', moneda: 'BS', saldo: 5000 },
-        { id: 2, nombre: 'Binance', moneda: 'USDT', saldo: 100 }
-      ])
-      
-      // Mock records - debería venir de API
-      setRecords([
-        {
-          id: 1,
-          tipo: 'ingreso',
-          monto: 1000,
-          categoria: 'Salario',
-          descripcion: 'Pago mensual',
-          fecha: '25/04/2026',
-          wallet: 'Banesco',
-          tasa_aplicada: 'promedio'
-        }
-      ])
+      setWallets(walletsData)
+      setRecords(recordsData)
+      setDbCategories(categoriesData)
       
     } catch (error) {
       console.error('Error cargando datos:', error)
@@ -97,13 +59,14 @@ export default function GestorPage() {
   }, [])
 
   // Cargar datos al montar
-  useState(() => {
+  useEffect(() => {
     loadData()
-  })
+  }, [loadData])
 
   // Obtener categorías filtradas por tipo
   const getCategorias = () => {
-    return DEFAULT_CATEGORIES.filter(cat => cat.tipo === tipo)
+    const cats = dbCategories.length > 0 ? dbCategories : DEFAULT_CATEGORIES
+    return cats.filter(cat => cat.tipo === tipo)
   }
 
   // Obtener tasa según selección
@@ -142,30 +105,31 @@ export default function GestorPage() {
   // Handle submit
   const handleSubmit = async () => {
     try {
-      const categoria = DEFAULT_CATEGORIES.find(cat => cat.id === categoriaId)
-      const wallet = wallets.find(w => w.id.toString() === walletId)
-      
-      if (!categoria || !wallet) {
-        console.error('Categoría o wallet no válida')
+      if (!walletId || !categoriaId || !monto) {
+        alert('Por favor completa todos los campos')
         return
       }
 
-      const newRecord: GestorRecord = {
-        id: Date.now(),
-        tipo,
-        monto: parseFloat(monto) || 0,
-        categoria: categoria.nombre,
-        descripcion,
-        fecha: new Date().toLocaleDateString('es-VE'),
-        wallet: wallet.nombre,
-        tasa_aplicada: tasaAplicada
-      }
-
-      // Aquí iría la llamada a la API para guardar el registro
-      console.log('Guardando registro:', newRecord)
+      const wallet = wallets.find(w => w.id.toString() === walletId)
+      const tasaVal = getTasaValor()
+      const montoVal = parseFloat(monto)
       
-      // Actualizar estado local
-      setRecords([newRecord, ...records])
+      // Si la wallet es BS, el monto convertido es el mismo. Si es USD/USDT, se multiplica por la tasa.
+      const montoConvertido = wallet?.moneda === 'BS' ? montoVal : montoVal * tasaVal
+
+      await createGestorRecord({
+        tipo,
+        monto: montoVal,
+        categoria_id: categoriaId,
+        descripcion,
+        wallet_id: parseInt(walletId),
+        tasa_aplicada: tasaAplicada,
+        tasa_valor: tasaVal,
+        monto_convertido: montoConvertido
+      })
+
+      // Recargar datos para ver el nuevo registro y saldo actualizado
+      await loadData()
       
       // Reset form
       setMonto('')
@@ -174,6 +138,7 @@ export default function GestorPage() {
       
     } catch (error) {
       console.error('Error guardando registro:', error)
+      alert('Error al guardar el registro. Verifica que tengas saldo suficiente si es un gasto.')
     }
   }
 
@@ -400,9 +365,11 @@ export default function GestorPage() {
                     <span className="text-lg font-bold">{record.tipo === 'ingreso' ? '↙' : '↗'}</span>
                   </div>
                   <div>
-                    <p className="text-white text-sm font-semibold leading-tight">{record.categoria}</p>
+                    <p className="text-white text-sm font-semibold leading-tight">{record.categoria?.nombre || 'General'}</p>
                     <p className="text-zinc-500 text-[10px] uppercase font-medium mt-1">{record.descripcion}</p>
-                    <p className="text-zinc-500 text-[10px] uppercase font-medium">{record.fecha} · {record.wallet}</p>
+                    <p className="text-zinc-500 text-[10px] uppercase font-medium">
+                      {new Date(record.fecha).toLocaleDateString('es-VE')} · {wallets.find(w => w.id === record.wallet_id)?.nombre || 'Cuenta'}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">

@@ -100,6 +100,39 @@ export interface TradeResponse {
     historial: Trade[];
 }
 
+export interface GestorCategory {
+    id: number;
+    nombre: string;
+    icono: string;
+    color: string;
+    tipo: 'gasto' | 'ingreso';
+    es_default: boolean;
+}
+
+export interface GestorRecord {
+    id: number;
+    tipo: 'ingreso' | 'gasto';
+    monto: number;
+    categoria_id: number;
+    descripcion?: string;
+    fecha: string;
+    wallet_id: number;
+    tasa_aplicada: string;
+    tasa_valor: number;
+    monto_convertido: number;
+    categoria?: GestorCategory;
+}
+
+export interface GestorSummary {
+    total_ingresos: number;
+    total_gastos: number;
+    balance: number;
+    count_ingresos: number;
+    count_gastos: number;
+    ultima_actualizacion: string;
+}
+
+
 // ── Funciones de API (Consumo Directo de Railway) ─────────────────────────
 
 export const fetchTasas = async (): Promise<TasaResponse> => {
@@ -229,3 +262,34 @@ export const sendChatMessage = async (mensaje: string): Promise<{ respuesta: str
     );
     return data;
 };
+
+// ── Funciones del Gestor ──────────────────────────────────────────────────
+
+export const fetchGestorRecords = async (): Promise<GestorRecord[]> => {
+    const { data } = await api.get<GestorRecord[]>('/gestor/records');
+    return data;
+};
+
+export const fetchGestorCategories = async (): Promise<GestorCategory[]> => {
+    const { data } = await api.get<GestorCategory[]>('/gestor/categories');
+    return data;
+};
+
+export const createGestorRecord = async (payload: {
+    tipo: 'ingreso' | 'gasto';
+    monto: number;
+    categoria_id: number;
+    descripcion?: string;
+    wallet_id: number;
+    tasa_aplicada: string;
+    tasa_valor: number;
+    monto_convertido: number;
+}): Promise<GestorRecord> => {
+    const { data } = await api.post<GestorRecord>('/gestor/records', payload);
+    return data;
+};
+
+export const getGestorSummary = async (): Promise<GestorSummary> => {
+    const { data } = await api.get<GestorSummary>('/gestor/summary');
+    return data;
+};

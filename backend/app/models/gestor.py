@@ -7,7 +7,7 @@ class GestorCategory(Base):
     __tablename__ = "gestor_categories"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
     nombre = Column(String(100), nullable=False)
     icono = Column(String(50), default="💰")
     color = Column(String(20), default="emerald")
@@ -22,7 +22,7 @@ class GestorRecord(Base):
     __tablename__ = "gestor_records"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
     tipo = Column(String(10), nullable=False)  # 'ingreso' o 'gasto'
     monto = Column(Float, nullable=False)
     categoria_id = Column(Integer, ForeignKey("gestor_categories.id"), nullable=False)

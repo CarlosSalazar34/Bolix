@@ -20,10 +20,10 @@ async def get_categories(
     skip: int = 0,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     query = select(GestorCategory).where(
-        GestorCategory.user_id == current_user["id"]
+        GestorCategory.user_id == current_user.id
     ).offset(skip).limit(limit)
     
     result = await db.execute(query)
@@ -33,11 +33,11 @@ async def get_categories(
 async def create_category(
     category: GestorCategoryCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     db_category = GestorCategory(
         **category.dict(),
-        user_id=current_user["id"]
+        user_id=current_user.id
     )
     db.add(db_category)
     await db.commit()
@@ -51,12 +51,12 @@ async def get_records(
     skip: int = 0,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     query = select(GestorRecord).options(
         selectinload(GestorRecord.categoria)
     ).where(
-        GestorRecord.user_id == current_user["id"]
+        GestorRecord.user_id == current_user.id
     ).order_by(GestorRecord.created_at.desc()).offset(skip).limit(limit)
     
     result = await db.execute(query)
@@ -66,14 +66,14 @@ async def get_records(
 async def create_record(
     record: GestorRecordCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     try:
         # 1. Validar que la wallet existe y pertenece al usuario
         wallet_query = select(Wallet).where(
             and_(
                 Wallet.id == record.wallet_id,
-                Wallet.user_id == current_user["id"]
+                Wallet.user_id == current_user.id
             )
         )
         wallet_result = await db.execute(wallet_query)
@@ -86,7 +86,7 @@ async def create_record(
         category_query = select(GestorCategory).where(
             and_(
                 GestorCategory.id == record.categoria_id,
-                GestorCategory.user_id == current_user["id"]
+                GestorCategory.user_id == current_user.id
             )
         )
         category_result = await db.execute(category_query)
@@ -98,7 +98,7 @@ async def create_record(
         # 3. Crear el registro
         db_record = GestorRecord(
             **record.dict(),
-            user_id=current_user["id"],
+            user_id=current_user.id,
             fecha=datetime.now(timezone.utc)
         )
         db.add(db_record)
@@ -136,7 +136,7 @@ async def update_record(
     record_id: int,
     record_update: GestorRecordCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     try:
         # 1. Obtener registro original
@@ -146,7 +146,7 @@ async def update_record(
         ).where(
             and_(
                 GestorRecord.id == record_id,
-                GestorRecord.user_id == current_user["id"]
+                GestorRecord.user_id == current_user.id
             )
         )
         result = await db.execute(record_query)
@@ -167,7 +167,7 @@ async def update_record(
             new_wallet_query = select(Wallet).where(
                 and_(
                     Wallet.id == record_update.wallet_id,
-                    Wallet.user_id == current_user["id"]
+                    Wallet.user_id == current_user.id
                 )
             )
             new_wallet_result = await db.execute(new_wallet_query)
@@ -221,7 +221,7 @@ async def update_record(
 async def delete_record(
     record_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     try:
         # 1. Obtener registro con wallet
@@ -230,7 +230,7 @@ async def delete_record(
         ).where(
             and_(
                 GestorRecord.id == record_id,
-                GestorRecord.user_id == current_user["id"]
+                GestorRecord.user_id == current_user.id
             )
         )
         result = await db.execute(record_query)
@@ -264,11 +264,11 @@ async def delete_record(
 @router.get("/summary", response_model=GestorSummary)
 async def get_summary(
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     # Obtener todos los records del usuario
     records_query = select(GestorRecord).where(
-        GestorRecord.user_id == current_user["id"]
+        GestorRecord.user_id == current_user.id
     )
     result = await db.execute(records_query)
     records = result.scalars().all()
