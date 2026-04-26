@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://bolix-five.vercel.app">
-    <img src="https://img.shields.io/badge/🌐_Frontend-bolix--five.vercel.app-0070F3?style=flat-square&logo=vercel" alt="Frontend"/>
+    <img src="https://img.shields.io/badge/🌐_Aplicación-Acceder_Aquí-0070F3?style=for-the-badge&logo=vercel" alt="Aplicación"/>
   </a>
   <img src="https://img.shields.io/github/license/CarlosSalazar34/Bolix?style=flat-square&color=emerald" alt="License"/>
 </p>
