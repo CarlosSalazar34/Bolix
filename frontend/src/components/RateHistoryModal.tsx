@@ -50,6 +50,13 @@ function SkeletonRow() {
 export default function RateHistoryModal({ source, onClose }: RateHistoryModalProps) {
   const [items, setItems] = useState<HistorialItem[]>([])
   const [loading, setLoading] = useState(false)
+  const [activeConfig, setActiveConfig] = useState<typeof SOURCE_CONFIG['bcv'] | null>(null)
+
+  useEffect(() => {
+    if (source && SOURCE_CONFIG[source]) {
+      setActiveConfig(SOURCE_CONFIG[source])
+    }
+  }, [source])
 
   useEffect(() => {
     if (!source) return
@@ -64,14 +71,11 @@ export default function RateHistoryModal({ source, onClose }: RateHistoryModalPr
       .finally(() => setLoading(false))
   }, [source])
 
-  const config = SOURCE_CONFIG[source ?? '']
-  if (!config) return null
-
-  const title = `${config.icon}  ${config.label}`
+  const title = activeConfig ? `${activeConfig.icon}  ${activeConfig.label}` : ''
 
   // Calcular stats del historial
-  const values = items.map(config.getValue)
-  const avg = values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0
+  const values = items.map(activeConfig?.getValue || (() => 0))
+  const avg = values.length ? values.reduce((a: number, b: number) => a + b, 0) / values.length : 0
   const max = values.length ? Math.max(...values) : 0
   const min = values.length ? Math.min(...values) : 0
 
@@ -127,8 +131,8 @@ export default function RateHistoryModal({ source, onClose }: RateHistoryModalPr
         {!loading && items.length > 0 && (
           <div className="flex flex-col gap-2.5">
             {items.map((item, i) => {
-              const val = config.getValue(item)
-              const prev = i < items.length - 1 ? config.getValue(items[i + 1]) : val
+              const val = activeConfig?.getValue(item) || 0
+              const prev = i < items.length - 1 ? activeConfig?.getValue(items[i + 1]) || val : val
               const isUp = val >= prev
               const date = new Date(item.fecha)
               return (
@@ -159,7 +163,7 @@ export default function RateHistoryModal({ source, onClose }: RateHistoryModalPr
                   <div className="text-right">
                     <p className="text-white font-bold text-base">Bs. {val.toFixed(2)}</p>
                     <p className={`text-xs font-medium ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {config.currency}
+                      {activeConfig?.currency}
                     </p>
                   </div>
                 </div>
