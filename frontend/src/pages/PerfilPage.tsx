@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import { fetchStatus, fetchUserProfile, updateUserPaymentInfo } from '../services/api'
-import type { StatusResponse, UserProfile } from '../services/api'
+import type { StatusResponse } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 export default function PerfilPage() {
   const [status, setStatus] = useState<StatusResponse | null>(null)
-  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,7 +27,6 @@ export default function PerfilPage() {
           fetchUserProfile()
         ])
         setStatus(statusData)
-        setProfile(profileData)
         setForm({
           banco: profileData.pago_banco || '',
           cedula: profileData.pago_cedula || '',
@@ -54,12 +52,11 @@ export default function PerfilPage() {
     setSuccess(false)
 
     try {
-      const updated = await updateUserPaymentInfo({
+      await updateUserPaymentInfo({
         pago_banco: form.banco,
         pago_cedula: form.cedula,
         pago_telefono: form.telefono
       })
-      setProfile(updated)
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (err) {
