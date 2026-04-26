@@ -110,5 +110,9 @@ async def chat_logic(
 
         return {"respuesta": f"Tu precio promedio de compra es {round(p_compra_avg, 2)} Bs. Como ahorita el USDT está en {p_actual} Bs., vas {estado} un {round(abs(diff_pct), 2)}% {emoji}."}
 
-    # 5. Saludo / Ayuda
+    # 5. Consultar Tasa
+    if any(x in mensaje_clean for x in ["tasa", "precio", "dolar", "dólar", "cuanto esta", "cuánto está"]):
+        return {"respuesta": f"La tasa actual de Binance P2P (USDT) es de **{precio_usdt} Bs.**"}
+
+    # 6. Saludo / Ayuda
     return {"respuesta": f"Hola {current_user.username}, soy Bolo. Puedo registrar tus compras (ej: 'Compré 100 bolos'), ventas o decirte si vas ganando o perdiendo dinero con la tasa de Binance."}

@@ -13,7 +13,7 @@ export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: '¡Hola! Soy Bolo 🤖. Puedo ayudarte a registrar tus compras o decirte cómo van tus ganancias en tus cuentas de binance. Prueba con: "Compré 100" o "¿Cuánto voy ganando?"',
+      text: '¡Hola! Soy Bolo 🤖, tu asistente de Bolix. Puedo ayudarte con:\n\n📈 **Inversión**: Registra lo que compras (ej: "Compré 100 bolos" o "Compré 20 USDT").\n\n💰 **Rendimiento**: Pregúntame "¿Cómo voy?" o "¿Voy ganando?" para ver tu ganancia o pérdida según Binance.\n\n📊 **Tasas**: Pregúntame "precio" o "tasa" para saber el valor actual.\n\n¿En qué te ayudo hoy?',
       sender: 'bot',
       timestamp: new Date()
     }
