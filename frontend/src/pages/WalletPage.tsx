@@ -382,28 +382,89 @@ export default function WalletPage() {
         </div>
 
         {showTradeForm && (
-          <div className="mx-1 mb-4 p-5 rounded-[2rem] bg-zinc-900/80 border border-zinc-800 backdrop-blur-md shadow-2xl animate-in slide-in-from-top-4 duration-200">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-bold text-white uppercase tracking-widest">Registrar Movimiento</h3>
-              <button onClick={() => setShowTradeForm(false)} className="text-zinc-500 hover:text-red-400 p-1">✕</button>
+          <div className="mx-1 mb-6 p-6 rounded-[2.5rem] bg-zinc-900/90 border border-zinc-800 backdrop-blur-xl shadow-2xl animate-in slide-in-from-top-4 duration-300">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-widest">Registrar Movimiento</h3>
+                <p className="text-[10px] text-zinc-500 font-medium uppercase mt-1">Afecta el saldo de tu billetera</p>
+              </div>
+              <button 
+                onClick={() => setShowTradeForm(false)} 
+                className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                value={tradeMonto}
-                onChange={(e) => setTradeMonto(e.target.value)}
-                placeholder={tradeWalletId ? 
-                  `Monto en ${wallets.find(w => w.id === tradeWalletId)?.moneda || 'USDT'}` : 
-                  "Monto"
-                }
-                className="h-9 rounded-lg bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
-              />
+
+            <div className="flex flex-col gap-5">
+              {/* Tabs de Tipo */}
+              <div className="flex gap-2 bg-zinc-950 p-1 rounded-2xl border border-zinc-800/50">
+                {(['FONDEO', 'COMPRA', 'VENTA'] as const).map((tipo) => (
+                  <button
+                    key={tipo}
+                    onClick={() => setTradeTipo(tipo)}
+                    className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all
+                      ${tradeTipo === tipo 
+                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' 
+                        : 'text-zinc-500 hover:text-zinc-300'}`}
+                  >
+                    {tipo}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Selección de Wallet */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Billetera</label>
+                  <select
+                    value={tradeWalletId}
+                    onChange={(e) => setTradeWalletId(e.target.value)}
+                    className="w-full h-12 rounded-2xl bg-zinc-950 border border-zinc-800 px-4 text-white text-sm outline-none focus:border-emerald-500/50 transition-all appearance-none"
+                  >
+                    {wallets.map(w => (
+                      <option key={w.id} value={w.id}>{w.nombre} ({w.moneda})</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Monto */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">
+                    Monto en {wallets.find(w => w.id === tradeWalletId)?.moneda || 'USDT'}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={tradeMonto}
+                      onChange={(e) => setTradeMonto(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full h-12 rounded-2xl bg-zinc-950 border border-zinc-800 px-4 text-white text-lg font-bold outline-none focus:border-emerald-500/50 transition-all"
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold text-xs">
+                      {wallets.find(w => w.id === tradeWalletId)?.moneda}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <button
                 onClick={handleRegistrarFondeo}
                 disabled={savingTrade}
-                className={`h-12 text-base rounded-2xl text-white font-bold shadow-lg transition-all active:scale-[0.98]
-                  ${savingTrade ? 'bg-zinc-700 opacity-50 cursor-not-allowed' : 'bg-emerald-600 shadow-emerald-900/20 hover:bg-emerald-500'}`}
+                className={`h-14 mt-2 text-sm rounded-2xl text-white font-bold shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2
+                  ${savingTrade 
+                    ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 shadow-emerald-900/20'}`}
               >
-                {savingTrade ? 'Registrando...' : 'Confirmar Registro'}
+                {savingTrade ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
+                    Procesando...
+                  </>
+                ) : (
+                  'Confirmar Movimiento'
+                )}
               </button>
             </div>
           </div>
