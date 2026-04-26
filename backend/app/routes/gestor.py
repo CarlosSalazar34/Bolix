@@ -4,6 +4,7 @@ from sqlalchemy import select, update, delete, and_
 from sqlalchemy.orm import selectinload
 from datetime import datetime, timezone
 from typing import List
+from decimal import Decimal
 
 from app.database import get_db
 from app.models.gestor import GestorRecord, GestorCategory
@@ -137,10 +138,11 @@ async def create_record(
         db.add(db_record)
         
         # 4. Actualizar saldo de la wallet (lógica contable)
+        monto_decimal = Decimal(str(record.monto_convertido))
         if record.tipo == "ingreso":
-            new_saldo = wallet.saldo + record.monto_convertido
+            new_saldo = wallet.saldo + monto_decimal
         else:  # gasto
-            new_saldo = wallet.saldo - record.monto_convertido
+            new_saldo = wallet.saldo - monto_decimal
             if new_saldo < 0:
                 raise HTTPException(status_code=400, detail="Saldo insuficiente")
         
@@ -189,11 +191,11 @@ async def update_record(
             raise HTTPException(status_code=404, detail="Record no encontrado")
         
         # 2. Revertir cambio original en wallet
-        original_wallet = record.wallet
+        original_monto_decimal = Decimal(str(record.monto_convertido))
         if record.tipo == "ingreso":
-            original_wallet.saldo -= record.monto_convertido
+            original_wallet.saldo -= original_monto_decimal
         else:  # gasto
-            original_wallet.saldo += record.monto_convertido
+            original_wallet.saldo += original_monto_decimal
         
         # 3. Validar nueva wallet si cambió
         if record_update.wallet_id != record.wallet_id:
@@ -214,10 +216,11 @@ async def update_record(
             target_wallet = original_wallet
         
         # 4. Aplicar nuevo cambio
+        new_monto_decimal = Decimal(str(record_update.monto_convertido))
         if record_update.tipo == "ingreso":
-            new_saldo = target_wallet.saldo + record_update.monto_convertido
+            new_saldo = target_wallet.saldo + new_monto_decimal
         else:  # gasto
-            new_saldo = target_wallet.saldo - record_update.monto_convertido
+            new_saldo = target_wallet.saldo - new_monto_decimal
             if new_saldo < 0:
                 raise HTTPException(status_code=400, detail="Saldo insuficiente")
         
