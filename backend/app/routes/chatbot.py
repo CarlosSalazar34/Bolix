@@ -104,7 +104,7 @@ async def chat_logic(
         tasa_ahora = await get_binance()
         p_actual = float(tasa_ahora.get('usdt'))
         
-        diff_pct = ((p_actual - p_compra_avg) / p_compra_avg) * 100 if p_compra_avg > 0 else 0
+        diff_pct = ((p_actual - float(p_compra_avg)) / float(p_compra_avg)) * 100 if p_compra_avg > 0 else 0
         emoji = "arriba 📈" if diff_pct >= 0 else "abajo 📉"
         estado = "ganando" if diff_pct >= 0 else "perdiendo"
 
