@@ -28,7 +28,7 @@ export default function GestorPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
-  
+
   // Form state
   const [tipo, setTipo] = useState<'ingreso' | 'gasto'>('ingreso')
   const [monto, setMonto] = useState('')
@@ -50,7 +50,7 @@ export default function GestorPage() {
       setTasas(tasasData)
       setWallets(walletsData)
       setRecords(recordsData)
-      
+
       // Si no hay categorías, las inicializamos automáticamente
       if (categoriesData.length === 0) {
         const seeded = await seedGestorCategories()
@@ -58,7 +58,7 @@ export default function GestorPage() {
       } else {
         setDbCategories(categoriesData)
       }
-      
+
     } catch (error) {
       console.error('Error cargando datos:', error)
     } finally {
@@ -80,7 +80,7 @@ export default function GestorPage() {
   // Obtener tasa según selección
   const getTasaValor = (): number => {
     if (!tasas) return 1
-    
+
     switch (tasaAplicada) {
       case 'bcv': return tasas.dolar_bcv
       case 'binance': return tasas.usdt_binance
@@ -90,12 +90,12 @@ export default function GestorPage() {
     }
   }
 
-  
+
   // Obtener label dinámico del monto
   const getMontoLabel = (): string => {
     const wallet = wallets.find(w => w.id.toString() === walletId)
     if (!wallet) return 'MONTO'
-    
+
     if (wallet.moneda === 'BS') {
       return 'MONTO EN BS'
     } else if (wallet.moneda === 'USDT') {
@@ -113,7 +113,7 @@ export default function GestorPage() {
   // Handle submit
   const handleSubmit = async () => {
     if (saving) return
-    
+
     try {
       setSaving(true)
       if (!walletId || !categoriaId || !monto) {
@@ -124,7 +124,7 @@ export default function GestorPage() {
       const wallet = wallets.find(w => w.id.toString() === walletId)
       const tasaVal = getTasaValor()
       const montoVal = parseFloat(monto)
-      
+
       // Si la wallet es BS, el monto convertido es el mismo. Si es USD/USDT, se multiplica por la tasa.
       const montoConvertido = wallet?.moneda === 'BS' ? montoVal : montoVal * tasaVal
 
@@ -141,12 +141,12 @@ export default function GestorPage() {
 
       // Recargar datos para ver el nuevo registro y saldo actualizado
       await loadData()
-      
+
       // Reset form
       setMonto('')
       setDescripcion('')
       setShowForm(false)
-      
+
     } catch (error: any) {
       console.error('Error guardando registro:', error)
       const msg = error?.response?.data?.detail || 'Error al guardar el registro'
@@ -167,7 +167,7 @@ export default function GestorPage() {
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
-      
+
       {/* Header */}
       <div className="flex justify-between items-end px-1">
         <div>
@@ -193,21 +193,19 @@ export default function GestorPage() {
           <div className="flex gap-2 bg-zinc-950 rounded-xl p-1">
             <button
               onClick={() => setTipo('ingreso')}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                tipo === 'ingreso'
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${tipo === 'ingreso'
                   ? 'bg-emerald-500 text-white'
                   : 'text-zinc-400 hover:text-white'
-              }`}
+                }`}
             >
               Ingreso
             </button>
             <button
               onClick={() => setTipo('gasto')}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                tipo === 'gasto'
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${tipo === 'gasto'
                   ? 'bg-red-500 text-white'
                   : 'text-zinc-400 hover:text-white'
-              }`}
+                }`}
             >
               Gasto
             </button>
@@ -300,6 +298,7 @@ export default function GestorPage() {
                   />
                 )}
               </div>
+              <div className='mt-2' />
               {tasas && tasaAplicada !== 'otro' && (
                 <p className="text-xs text-zinc-500 mt-1">
                   1 USD = {getTasaValor().toFixed(2)} BS
@@ -335,8 +334,8 @@ export default function GestorPage() {
               onClick={handleSubmit}
               disabled={saving}
               className={`flex-1 py-3 rounded-xl text-white font-semibold transition-all flex items-center justify-center gap-2
-                ${saving 
-                  ? 'bg-zinc-700 cursor-not-allowed opacity-70' 
+                ${saving
+                  ? 'bg-zinc-700 cursor-not-allowed opacity-70'
                   : 'bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-900/20 active:scale-[0.98]'
                 }`}
             >
@@ -380,8 +379,8 @@ export default function GestorPage() {
             <div className="p-10 text-center text-zinc-500 text-sm italic">No hay movimientos aún.</div>
           ) : (
             records.map((record, i) => (
-              <div 
-                key={record.id} 
+              <div
+                key={record.id}
                 className={`flex items-center justify-between p-4 ${i !== records.length - 1 ? 'border-b border-zinc-800/50' : ''}`}
               >
                 <div className="flex items-center gap-4">
