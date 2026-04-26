@@ -192,6 +192,9 @@ export interface StatusResponse {
     version: string;
     status: string;
     fuentes: string[];
+    cache_ttl: string;
+    redis: string;
+    uptime: string;
 }
 
 export interface Wallet {
