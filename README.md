@@ -14,9 +14,6 @@
   <a href="https://bolix-five.vercel.app">
     <img src="https://img.shields.io/badge/🌐_Frontend-bolix--five.vercel.app-0070F3?style=flat-square&logo=vercel" alt="Frontend"/>
   </a>
-  <a href="https://bolix-backend.vercel.app">
-    <img src="https://img.shields.io/badge/⚡_Backend-bolix--backend.vercel.app-000000?style=flat-square&logo=vercel" alt="Backend"/>
-  </a>
   <img src="https://img.shields.io/github/license/CarlosSalazar34/Bolix?style=flat-square&color=emerald" alt="License"/>
 </p>
 
