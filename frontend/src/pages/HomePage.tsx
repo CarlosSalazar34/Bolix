@@ -182,15 +182,6 @@ export default function HomePage() {
         source: 'BCV - Binance',
         gradient: 'from-emerald-500/20 to-emerald-900/10',
       },
-      {
-        label: 'Promedio Bolix',
-        currency: 'PRO',
-        value: tasas.promedio.toFixed(2),
-        change: 'Sugerido',
-        up: true,
-        source: 'BCV + Binance',
-        gradient: 'from-blue-500/20 to-blue-900/10',
-      },
     ]
   }
 
