@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { IconPlus, IconTrend } from '../components/icons'
-import { fetchTasas, fetchWallets, fetchGestorRecords, createGestorRecord, fetchGestorCategories } from '../services/api'
+import { fetchTasas, fetchWallets, fetchGestorRecords, createGestorRecord, fetchGestorCategories, seedGestorCategories } from '../services/api'
 import type { TasaResponse, Wallet, GestorRecord, GestorCategory } from '../services/api'
 
 // Usamos los tipos de la API directamente
@@ -49,7 +49,14 @@ export default function GestorPage() {
       setTasas(tasasData)
       setWallets(walletsData)
       setRecords(recordsData)
-      setDbCategories(categoriesData)
+      
+      // Si no hay categorías, las inicializamos automáticamente
+      if (categoriesData.length === 0) {
+        const seeded = await seedGestorCategories()
+        setDbCategories(seeded)
+      } else {
+        setDbCategories(categoriesData)
+      }
       
     } catch (error) {
       console.error('Error cargando datos:', error)
@@ -136,9 +143,10 @@ export default function GestorPage() {
       setDescripcion('')
       setShowForm(false)
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error guardando registro:', error)
-      alert('Error al guardar el registro. Verifica que tengas saldo suficiente si es un gasto.')
+      const msg = error?.response?.data?.detail || 'Error al guardar el registro'
+      alert(`${msg}. Verifica que tengas saldo suficiente si es un gasto.`)
     }
   }
 

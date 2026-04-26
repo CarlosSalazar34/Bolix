@@ -292,4 +292,9 @@ export const createGestorRecord = async (payload: {
 export const getGestorSummary = async (): Promise<GestorSummary> => {
     const { data } = await api.get<GestorSummary>('/gestor/summary');
     return data;
-};
+};
+
+export const seedGestorCategories = async (): Promise<GestorCategory[]> => {
+    const { data } = await api.post<GestorCategory[]>('/gestor/categories/seed');
+    return data;
+};

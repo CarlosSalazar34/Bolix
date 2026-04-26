@@ -44,6 +44,39 @@ async def create_category(
     await db.refresh(db_category)
     return db_category
 
+@router.post("/categories/seed", response_model=List[GestorCategorySchema])
+async def seed_categories(
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    # Verificar si ya tiene categorías
+    existing = await db.execute(select(GestorCategory).where(GestorCategory.user_id == current_user.id))
+    if existing.scalars().first():
+        return []
+
+    defaults = [
+        {"nombre": "Salario", "icono": "💰", "color": "blue", "tipo": "ingreso", "es_default": True},
+        {"nombre": "Regalo", "icono": "🎁", "color": "pink", "tipo": "ingreso", "es_default": True},
+        {"nombre": "Interés", "icono": "🏦", "color": "green", "tipo": "ingreso", "es_default": True},
+        {"nombre": "Otros", "icono": "❓", "color": "gray", "tipo": "ingreso", "es_default": True},
+        {"nombre": "Salud", "icono": "❤️", "color": "red", "tipo": "gasto", "es_default": True},
+        {"nombre": "Ocio", "icono": "🎮", "color": "purple", "tipo": "gasto", "es_default": True},
+        {"nombre": "Casa", "icono": "🏠", "color": "yellow", "tipo": "gasto", "es_default": True},
+        {"nombre": "Café", "icono": "☕", "color": "orange", "tipo": "gasto", "es_default": True},
+        {"nombre": "Educación", "icono": "🎓", "color": "indigo", "tipo": "gasto", "es_default": True},
+        {"nombre": "Regalos", "icono": "🎁", "color": "pink", "tipo": "gasto", "es_default": True},
+        {"nombre": "Alimentación", "icono": "🛒", "color": "green", "tipo": "gasto", "es_default": True},
+    ]
+    
+    new_cats = []
+    for d in defaults:
+        cat = GestorCategory(**d, user_id=current_user.id)
+        db.add(cat)
+        new_cats.append(cat)
+    
+    await db.commit()
+    return new_cats
+
 # ── RECORDS ───────────────────────────────────────────────────────────────────
 
 @router.get("/records", response_model=List[GestorRecordSchema])
