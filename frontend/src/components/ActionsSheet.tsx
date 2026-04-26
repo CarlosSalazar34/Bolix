@@ -60,7 +60,7 @@ export default function ActionsSheet({ amount, result, currency, profile, onEdit
             }`}
         >
           <IconWhatsApp />
-          WhatsApp
+          Cobrar
         </button>
 
         {/* Editar montos rápidos */}
