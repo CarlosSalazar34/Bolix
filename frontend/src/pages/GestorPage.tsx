@@ -27,6 +27,7 @@ export default function GestorPage() {
   const [tasas, setTasas] = useState<TasaResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [saving, setSaving] = useState(false)
   
   // Form state
   const [tipo, setTipo] = useState<'ingreso' | 'gasto'>('ingreso')
@@ -111,7 +112,10 @@ export default function GestorPage() {
 
   // Handle submit
   const handleSubmit = async () => {
+    if (saving) return
+    
     try {
+      setSaving(true)
       if (!walletId || !categoriaId || !monto) {
         alert('Por favor completa todos los campos')
         return
@@ -147,6 +151,8 @@ export default function GestorPage() {
       console.error('Error guardando registro:', error)
       const msg = error?.response?.data?.detail || 'Error al guardar el registro'
       alert(`${msg}. Verifica que tengas saldo suficiente si es un gasto.`)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -327,9 +333,21 @@ export default function GestorPage() {
             </button>
             <button
               onClick={handleSubmit}
-              className="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition-colors"
+              disabled={saving}
+              className={`flex-1 py-3 rounded-xl text-white font-semibold transition-all flex items-center justify-center gap-2
+                ${saving 
+                  ? 'bg-zinc-700 cursor-not-allowed opacity-70' 
+                  : 'bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-900/20 active:scale-[0.98]'
+                }`}
             >
-              Guardar
+              {saving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Guardando...</span>
+                </>
+              ) : (
+                'Guardar'
+              )}
             </button>
           </div>
         </div>
