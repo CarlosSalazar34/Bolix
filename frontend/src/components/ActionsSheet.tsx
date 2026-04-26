@@ -7,9 +7,10 @@ interface ActionsSheetProps {
   currency: string
   profile: UserProfile | null
   onEditQuickAmounts: () => void
+  onConfigurePayment: () => void
 }
 
-export default function ActionsSheet({ amount, result, currency, profile, onEditQuickAmounts }: ActionsSheetProps) {
+export default function ActionsSheet({ amount, result, currency, profile, onEditQuickAmounts, onConfigurePayment }: ActionsSheetProps) {
   const hasPagoMovil = profile?.pago_banco && profile?.pago_telefono
 
   const handleWhatsAppShare = () => {
@@ -32,16 +33,21 @@ export default function ActionsSheet({ amount, result, currency, profile, onEdit
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Aviso si faltan datos de Pago Móvil */}
+      {/* Aviso si faltan datos de Pago Móvil - Ahora Clickable */}
       {profile && !hasPagoMovil && (
-        <div className="px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
-          <span className="text-lg">💡</span>
-          <p className="text-[11px] text-amber-200/80 leading-tight">
-            Configura tus datos de <span className="font-bold text-amber-400">Pago Móvil</span> en tu Perfil para incluirlos automáticamente al compartir.
+        <button 
+          onClick={onConfigurePayment}
+          className="w-full px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-left hover:bg-amber-500/20 active:scale-[0.98] transition-all group"
+        >
+          <span className="text-lg group-hover:scale-110 transition-transform">💡</span>
+          <p className="text-[11px] text-amber-200/80 leading-tight flex-1">
+            Configura tus datos de <span className="font-bold text-amber-400 underline decoration-amber-500/30 underline-offset-2">Pago Móvil</span> aquí para incluirlos al compartir.
           </p>
-        </div>
+          <span className="text-amber-500/50 text-xs">→</span>
+        </button>
       )}
 
+      {/* Resto de botones */}
       <div className="flex gap-2">
         {/* Compartir por WhatsApp */}
         <button

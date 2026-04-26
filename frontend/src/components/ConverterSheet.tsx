@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import BottomSheet from './BottomSheet'
 import { fetchUserProfile, type TasaResponse, type UserProfile } from '../services/api'
 import ActionsSheet from './ActionsSheet'
+import PaymentInfoModal from './PaymentInfoModal'
 
 type Currency = 'USD' | 'USDT' | 'EUR' | 'PRO' | 'OTRO'
 
@@ -69,6 +70,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
   const [quickAmounts, setQuickAmounts] = useState<number[]>(DEFAULT_AMOUNTS)
   const [isEditingAmounts, setIsEditingAmounts] = useState(false)
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false)
 
   // Cargar perfil para Pago Móvil
   useEffect(() => {
@@ -281,6 +283,14 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
           currency={selected}
           profile={profile}
           onEditQuickAmounts={() => setIsEditingAmounts(!isEditingAmounts)}
+          onConfigurePayment={() => setPaymentModalOpen(true)}
+        />
+
+        <PaymentInfoModal
+          open={paymentModalOpen}
+          onClose={() => setPaymentModalOpen(false)}
+          profile={profile}
+          onSave={(updated) => setProfile(updated)}
         />
 
         {/* Dirección de conversión */}
