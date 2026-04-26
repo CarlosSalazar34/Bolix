@@ -97,8 +97,8 @@ async def chat_logic(
             return {"respuesta": "Aún no tienes compras registradas para calcular tu rendimiento."}
         
         # Calcular precio promedio ponderado
-        total_monto = sum(t.monto_usdt for t in trades)
-        total_costo_bs = sum(t.monto_usdt * float(t.precio_tasa) for t in trades)
+        total_monto = float(sum(t.monto_usdt for t in trades))
+        total_costo_bs = sum(float(t.monto_usdt) * float(t.precio_tasa) for t in trades)
         p_compra_avg = total_costo_bs / total_monto if total_monto > 0 else 0
         
         tasa_ahora = await get_binance()

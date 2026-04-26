@@ -16,16 +16,20 @@ export default function ActionsSheet({ amount, result, currency, profile, onEdit
   const handleWhatsAppShare = () => {
     if (!result || !amount) return
 
-    let text = `💱 *Bolix* | ${amount} ${currency} = *Bs. ${result}*`
+    let text = `BOLIX - Orden de Pago\n\n`
+    text += `Total a pagar: Bs. ${result}\n`
+    text += `Referencia: ${amount} ${currency}\n\n`
     
     if (hasPagoMovil) {
-      text += `\n\n*Datos de Pago Móvil:*\n`
-      text += `🏦 *Banco:* ${profile.pago_banco}\n`
-      text += `📱 *Tel:* ${profile.pago_telefono}\n`
+      text += `Datos de Pago Móvil:\n`
+      text += `🏦 Banco: ${profile.pago_banco}\n`
       if (profile.pago_cedula) {
-        text += `🆔 *CI:* ${profile.pago_cedula}`
+        text += `🆔 Cédula: ${profile.pago_cedula}\n`
       }
+      text += `📱 Teléfono: ${profile.pago_telefono}\n\n`
     }
+
+    text += `Generado por Bolix`
 
     const encodedText = encodeURIComponent(text)
     window.open(`https://wa.me/?text=${encodedText}`, '_blank')
