@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
-import { IconWallet, IconPlus, IconTrend } from '../components/icons'
-
 // 1. Separación de funciones y tipos para cumplir con verbatimModuleSyntax
-import { fetchWallets, fetchTrades, createWallet, updateWallet, registrarTrade, smokeTestBolixEndpoints } from '../services/api'
-import type { Wallet as ApiWallet, Trade as ApiTrade } from '../services/api'
+import { fetchWallets, fetchTrades, createWallet, updateWallet, registrarTrade, smokeTestBolixEndpoints, deleteWallet, deleteTrade } from '../services/api'
+import type { Wallet as ApiWallet, Trade as ApiTrade, SmokeTestResult } from '../services/api'
+import { IconWallet, IconPlus, IconTrend, IconTrash } from '../components/icons'
 
 // ── Tipos de la Interfaz (Frontend) ────────────────────────────────────────
 interface Wallet {
@@ -28,6 +27,8 @@ interface Transaction {
 
 export default function WalletPage() {
   const [loading, setLoading] = useState(true)
+  const [savingWallet, setSavingWallet] = useState(false)
+  const [savingTrade, setSavingTrade] = useState(false)
   const [wallets, setWallets] = useState<Wallet[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [showWalletForm, setShowWalletForm] = useState(false)
@@ -105,12 +106,12 @@ export default function WalletPage() {
     loadData();
     if (import.meta.env.DEV) {
       smokeTestBolixEndpoints()
-        .then((results) => {
+        .then((results: SmokeTestResult[]) => {
           console.group('Bolix Smoke Test');
           console.table(results);
           console.groupEnd();
         })
-        .catch((error) => {
+        .catch((error: any) => {
           console.error('Smoke test fallo:', error);
         });
     }
@@ -122,37 +123,73 @@ export default function WalletPage() {
     }
   }, [wallets, tradeWalletId])
 
-  const handleAgregarWallet = async () => {
+  const handleGuardarWallet = async () => {
     const nombre = walletNombre.trim()
     const saldo = Number(walletSaldo)
     const esPrincipal = walletMoneda === 'USDT'
 
     if (!nombre) {
-      console.warn('Debes colocar un nombre de wallet')
+      alert('Ponle un nombre a la cuenta')
       return
     }
 
-    if (Number.isNaN(saldo)) {
-      console.warn('Saldo invalido');
+    setSavingWallet(true)
+    try {
+      if (editingWalletId) {
+        await updateWallet(Number(editingWalletId), {
+          nombre,
+          moneda: walletMoneda,
+          saldo,
+          es_principal_usdt: esPrincipal
+        })
+      } else {
+        await createWallet({
+          nombre,
+          moneda: walletMoneda,
+          saldo,
+          es_principal_usdt: esPrincipal
+        })
+      }
+      setShowWalletForm(false)
+      setEditingWalletId(null)
+      setWalletNombre('')
+      setWalletSaldo('0')
+      await loadData()
+    } catch (error) {
+      console.error('Error al guardar wallet:', error)
+      alert('Error al guardar la billetera')
+    } finally {
+      setSavingWallet(false)
+    }
+  }
+
+  const handleEliminarWallet = async (id: number, saldo: number) => {
+    if (saldo > 0) {
+      alert("No puedes eliminar una billetera con saldo. Primero retira los fondos o gástalos.");
       return;
     }
 
-    try {
-      await createWallet({
-        nombre,
-        moneda: walletMoneda,
-        saldo,
-        es_principal_usdt: esPrincipal
-      });
-      setWalletNombre('')
-      setWalletSaldo('0')
-      setWalletMoneda('USDT')
-      setShowWalletForm(false)
-      await loadData();
-    } catch (error) {
-      console.error('No se pudo crear la wallet:', error);
+    if (window.confirm("¿Estás seguro de que quieres eliminar esta billetera?")) {
+      try {
+        await deleteWallet(id);
+        await loadData();
+      } catch (error) {
+        console.error("Error al eliminar wallet:", error);
+        alert("No se pudo eliminar la billetera.");
+      }
     }
-  };
+  }
+
+  const handleEliminarTrade = async (id: number) => {
+    if (window.confirm("¿Eliminar este movimiento? Esto no devolverá el dinero a la billetera automáticamente.")) {
+      try {
+        await deleteTrade(id);
+        await loadData();
+      } catch (error) {
+        console.error("Error al eliminar trade:", error);
+      }
+    }
+  }
 
   const handleEditarWallet = (wallet: Wallet) => {
     setEditingWalletId(wallet.id)
@@ -160,36 +197,6 @@ export default function WalletPage() {
     setWalletMoneda(wallet.moneda)
     setWalletSaldo(String(wallet.balance))
     setShowWalletForm(true)
-  }
-
-  const handleGuardarWallet = async () => {
-    if (editingWalletId) {
-      const nombre = walletNombre.trim()
-      const saldo = Number(walletSaldo)
-      const esPrincipal = walletMoneda === 'USDT'
-      if (!nombre || Number.isNaN(saldo)) {
-        console.warn('Datos de billetera invalidos')
-        return
-      }
-      try {
-        await updateWallet(Number(editingWalletId), {
-          nombre,
-          moneda: walletMoneda,
-          saldo,
-          es_principal_usdt: esPrincipal
-        })
-        setEditingWalletId(null)
-        setWalletNombre('')
-        setWalletSaldo('0')
-        setWalletMoneda('USDT')
-        setShowWalletForm(false)
-        await loadData()
-      } catch (error) {
-        console.error('No se pudo editar la wallet:', error)
-      }
-      return
-    }
-    await handleAgregarWallet()
   }
 
   const handleRegistrarFondeo = async () => {
@@ -203,6 +210,8 @@ export default function WalletPage() {
       return;
     }
     const walletSeleccionada = wallets.find((w) => w.id === tradeWalletId)
+    
+    setSavingTrade(true)
     try {
       await registrarTrade({
         tipo: tradeTipo,
@@ -218,6 +227,8 @@ export default function WalletPage() {
     } catch (error: any) {
       const detail = error?.response?.data?.detail
       console.error('No se pudo registrar el movimiento:', detail || error);
+    } finally {
+      setSavingTrade(false)
     }
   };
 
@@ -232,7 +243,7 @@ export default function WalletPage() {
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
-      
+
       {/* Header */}
       <div className="flex justify-between items-end px-1">
         <div>
@@ -249,39 +260,65 @@ export default function WalletPage() {
       </div>
 
       {showWalletForm && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 flex flex-col gap-3">
-          <p className="text-xs text-zinc-400 uppercase tracking-widest">
-            {editingWalletId ? 'Editar billetera' : 'Nueva billetera'}
-          </p>
-          <input
-            value={walletNombre}
-            onChange={(e) => setWalletNombre(e.target.value)}
-            placeholder="Nombre (ej: Binance)"
-            className="h-10 rounded-xl bg-zinc-950 border border-zinc-700 px-3 text-sm text-white"
-          />
-          <div className="flex gap-2">
-            <select
-              value={walletMoneda}
-              onChange={(e) => setWalletMoneda(e.target.value as 'USDT' | 'USD' | 'BS')}
-              className="h-10 rounded-xl bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
+        <div className="mx-1 p-5 rounded-[2rem] bg-zinc-900/80 border border-zinc-800 backdrop-blur-md shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-bold text-white uppercase tracking-widest">
+              {editingWalletId ? 'Editar billetera' : 'Nueva billetera'}
+            </h3>
+            <button
+              onClick={() => { setShowWalletForm(false); setEditingWalletId(null); }}
+              className="text-zinc-500 hover:text-red-400 p-1"
             >
-              <option value="USDT">USDT</option>
-              <option value="USD">USD</option>
-              <option value="BS">BS</option>
-            </select>
-            <input
-              value={walletSaldo}
-              onChange={(e) => setWalletSaldo(e.target.value)}
-              placeholder="Saldo"
-              className="h-10 rounded-xl bg-zinc-950 border border-zinc-700 px-3 text-sm text-white w-32"
-            />
+              ✕
+            </button>
           </div>
-          <button
-            onClick={handleGuardarWallet}
-            className="h-10 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500"
-          >
-            {editingWalletId ? 'Actualizar billetera' : 'Guardar billetera'}
-          </button>
+
+          <div className="flex flex-col gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Nombre de la cuenta</label>
+              <input
+                value={walletNombre}
+                onChange={(e) => setWalletNombre(e.target.value)}
+                placeholder="Ej: Efectivo, Binance, Banesco..."
+                className="w-full h-12 text-base rounded-2xl bg-zinc-950 border border-zinc-800 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 px-4 text-white transition-all outline-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Moneda</label>
+                <select
+                  value={walletMoneda}
+                  onChange={(e) => setWalletMoneda(e.target.value as 'USDT' | 'USD' | 'BS')}
+                  className="w-full h-12 text-base rounded-2xl bg-zinc-950 border border-zinc-800 px-4 text-white outline-none appearance-none"
+                >
+                  <option value="USDT">USDT (₮)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="BS">BS (Bs.)</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase ml-1">Saldo inicial</label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={walletSaldo}
+                  onChange={(e) => setWalletSaldo(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full h-12 text-base rounded-2xl bg-zinc-950 border border-zinc-800 px-4 text-white outline-none"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={handleGuardarWallet}
+              disabled={savingWallet}
+              className={`h-12 mt-2 text-base rounded-2xl text-white font-bold shadow-lg transition-all active:scale-[0.98]
+                ${savingWallet ? 'bg-zinc-700 opacity-50 cursor-not-allowed' : 'bg-emerald-600 shadow-emerald-900/20 hover:bg-emerald-500'}`}
+            >
+              {savingWallet ? 'Guardando...' : (editingWalletId ? 'Guardar cambios' : 'Crear Billetera')}
+            </button>
+          </div>
         </div>
       )}
 
@@ -293,8 +330,8 @@ export default function WalletPage() {
           </div>
         ) : (
           wallets.map((w) => (
-            <div 
-              key={w.id} 
+            <div
+              key={w.id}
               className={`min-w-[280px] h-44 rounded-[2.5rem] p-6 bg-gradient-to-br ${w.color} relative overflow-hidden shadow-xl flex flex-col justify-between`}
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-12 translate-x-12 blur-2xl" />
@@ -312,12 +349,20 @@ export default function WalletPage() {
                 <h3 className="text-3xl font-bold text-white tracking-tighter">
                   {w.moneda === 'BS' ? 'Bs.' : w.moneda === 'USDT' ? '₮' : '$'} {w.balance.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
                 </h3>
-                <button
-                  onClick={() => handleEditarWallet(w)}
-                  className="mt-2 text-[10px] uppercase font-bold text-white/80 hover:text-white underline"
-                >
-                  Editar
-                </button>
+                <div className="flex gap-4 items-center mt-2">
+                  <button
+                    onClick={() => handleEditarWallet(w)}
+                    className="text-[10px] uppercase font-bold text-white/80 hover:text-white underline"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleEliminarWallet(Number(w.id), w.balance)}
+                    className="text-[10px] uppercase font-bold text-white/50 hover:text-red-300 transition-colors"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
             </div>
           ))
@@ -337,29 +382,10 @@ export default function WalletPage() {
         </div>
 
         {showTradeForm && (
-          <div className="mx-1 mb-2 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3 flex flex-col gap-2">
-            <div className="flex gap-2">
-              <select
-                value={tradeTipo}
-                onChange={(e) => setTradeTipo(e.target.value as 'COMPRA' | 'VENTA' | 'FONDEO')}
-                className="h-9 rounded-lg bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
-              >
-                <option value="FONDEO">Fondeo</option>
-                <option value="COMPRA">Compra</option>
-                <option value="VENTA">Venta</option>
-              </select>
-              <select
-                value={tradeWalletId}
-                onChange={(e) => setTradeWalletId(e.target.value)}
-                className="h-9 rounded-lg bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
-              >
-                <option value="">Selecciona wallet</option>
-                {wallets.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.nombre} ({w.moneda})
-                  </option>
-                ))}
-              </select>
+          <div className="mx-1 mb-4 p-5 rounded-[2rem] bg-zinc-900/80 border border-zinc-800 backdrop-blur-md shadow-2xl animate-in slide-in-from-top-4 duration-200">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-bold text-white uppercase tracking-widest">Registrar Movimiento</h3>
+              <button onClick={() => setShowTradeForm(false)} className="text-zinc-500 hover:text-red-400 p-1">✕</button>
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -373,9 +399,11 @@ export default function WalletPage() {
               />
               <button
                 onClick={handleRegistrarFondeo}
-                className="h-9 px-3 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500"
+                disabled={savingTrade}
+                className={`h-12 text-base rounded-2xl text-white font-bold shadow-lg transition-all active:scale-[0.98]
+                  ${savingTrade ? 'bg-zinc-700 opacity-50 cursor-not-allowed' : 'bg-emerald-600 shadow-emerald-900/20 hover:bg-emerald-500'}`}
               >
-                Confirmar
+                {savingTrade ? 'Registrando...' : 'Confirmar Registro'}
               </button>
             </div>
           </div>
@@ -386,8 +414,8 @@ export default function WalletPage() {
             <div className="p-10 text-center text-zinc-500 text-sm italic">No hay movimientos aún.</div>
           ) : (
             transactions.map((t, i) => (
-              <div 
-                key={t.id} 
+              <div
+                key={t.id}
                 className={`flex items-center justify-between p-4 ${i !== transactions.length - 1 ? 'border-b border-zinc-800/50' : ''}`}
               >
                 <div className="flex items-center gap-4">
@@ -406,7 +434,14 @@ export default function WalletPage() {
                   <p className={`font-bold text-sm tracking-tight ${t.tipo === 'ingreso' ? 'text-emerald-400' : 'text-zinc-300'}`}>
                     {t.tipo === 'egreso' ? '-' : '+'} {t.monto.toFixed(2)} {t.moneda}
                   </p>
-                  <div className="flex justify-end mt-1">
+                  <div className="flex justify-end gap-2 mt-1">
+                    <button
+                      onClick={() => handleEliminarTrade(Number(t.id))}
+                      className="text-zinc-600 hover:text-red-400/70 transition-colors p-1"
+                      title="Eliminar movimiento"
+                    >
+                      <IconTrash size={14} />
+                    </button>
                     <IconTrend up={t.tipo === 'ingreso'} />
                   </div>
                 </div>

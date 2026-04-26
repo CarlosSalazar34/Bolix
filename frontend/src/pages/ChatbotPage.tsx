@@ -13,7 +13,7 @@ export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: '¡Hola! Soy Bolo 🤖. Puedo ayudarte a registrar tus compras o decirte cómo van tus ganancias. Prueba con: "Compré 100" o "¿Cuánto voy ganando?"',
+      text: '¡Hola! Soy Bolo 🤖. Puedo ayudarte a registrar tus compras o decirte cómo van tus ganancias en tus cuentas de binance. Prueba con: "Compré 100" o "¿Cuánto voy ganando?"',
       sender: 'bot',
       timestamp: new Date()
     }
@@ -75,7 +75,7 @@ export default function ChatbotPage() {
           <IconMessage />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">BoliBot</h1>
+          <h1 className="text-xl font-bold text-white tracking-tight">Bolo</h1>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="text-xs text-zinc-400 font-medium">En línea para ayudarte</span>

@@ -1,6 +1,7 @@
 {
   "short_name": "Bolix",
-  "name": "Bolix - Tasas de Cambio",
+  "name": "Bolix - Tasas de Cambio en Venezuela",
+  "description": "Consulta el precio del Dólar BCV, Euro y USDT en tiempo real.",
   "icons": [
     {
       "src": "logo.jpeg",
