@@ -129,6 +129,7 @@ export default function ActionsSheet({ amount, result, currency, onEditQuickAmou
                                         value={form.cedula}
                                         onChange={(e) => setForm({ ...form, cedula: e.target.value })}
                                         placeholder="V-12345678"
+                                        maxLength={8}
                                         className="w-full h-12 text-base rounded-2xl bg-zinc-950 border border-zinc-800 px-4 text-white outline-none focus:border-emerald-500/50 transition-all"
                                     />
                                 </div>
@@ -138,6 +139,7 @@ export default function ActionsSheet({ amount, result, currency, onEditQuickAmou
                                         value={form.telefono}
                                         onChange={(e) => setForm({ ...form, telefono: e.target.value })}
                                         placeholder="0412..."
+                                        maxLength={11}
                                         className="w-full h-12 text-base rounded-2xl bg-zinc-950 border border-zinc-800 px-4 text-white outline-none focus:border-emerald-500/50 transition-all"
                                     />
                                 </div>
