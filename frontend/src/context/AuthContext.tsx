@@ -44,7 +44,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('bolix_user_id', data.id.toString())
     } catch (error) {
       console.error("Error en login context:", error)
-      throw error
+      // Si el error ya tiene mensaje, lanzarlo tal cual
+      if (error instanceof Error) {
+        throw error
+      }
+      // Si no, crear un error genérico
+      throw new Error('Error de conexión con el servidor')
     }
   }
 

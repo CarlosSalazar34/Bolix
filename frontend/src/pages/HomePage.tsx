@@ -4,6 +4,7 @@ import HeroCard from '../components/HeroCard'
 import RateCard from '../components/RateCard'
 import type { RateCardData } from '../components/RateCard'
 import HistoryItem from '../components/HistoryItem'
+import RateHistoryModal from '../components/RateHistoryModal'
 import { fetchTasas, fetchHistorial } from '../services/api'
 import type { TasaResponse, HistorialItem } from '../services/api'
 import { registerPushNotifications, sendSubscriptionToBackend } from '../services/pushService'
@@ -14,6 +15,8 @@ export default function HomePage() {
   const [historial, setHistorial] = useState<HistorialItem[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [activeSlide, setActiveSlide] = useState(0)
+  const [selectedSource, setSelectedSource] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const { logout } = useAuth()
@@ -77,6 +80,17 @@ export default function HomePage() {
     loadData()
   }
 
+  const handleSourceClick = (source: string) => {
+    setSelectedSource(source)
+  }
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollLeft = e.currentTarget.scrollLeft
+    const width = e.currentTarget.clientWidth
+    const index = Math.round(scrollLeft / width)
+    setActiveSlide(index)
+  }
+
   // Tiempo relativo desde la última actualización
   const tiempoRelativo = () => {
     if (!lastUpdate) return '...'
@@ -85,11 +99,51 @@ export default function HomePage() {
     return `Hace ${Math.floor(diff / 60)} min`
   }
 
+  const heroSlides = tasas ? [
+    {
+      id: 'promedio',
+      label: 'Tasa Promedio',
+      value: tasas.promedio.toFixed(2),
+      monedaStr: '/ USD',
+      brecha: tasas.brecha_porcentual.replace('%', '') + '%',
+      estatus: (tasas.estatus_mercado || '').includes('Estable') ? '✅ Estable' : '⚠️ Alerta',
+      gradient: 'from-emerald-600 to-green-800'
+    },
+    {
+      id: 'bcv',
+      label: 'Dólar BCV',
+      value: tasas.dolar_bcv.toFixed(2),
+      monedaStr: '/ USD',
+      brecha: (tasas.estatus_mercado || '').includes('Estable') ? 'Estable' : 'Alerta',
+      estatus: 'Oficial',
+      gradient: 'from-emerald-600 to-green-800'
+    },
+    {
+      id: 'euro',
+      label: 'Euro BCV',
+      value: tasas.euro_bcv.toFixed(2),
+      monedaStr: '/ EUR',
+      brecha: 'Oficial',
+      estatus: 'Oficial',
+      gradient: 'from-emerald-600 to-green-800'
+    },
+    {
+      id: 'binance',
+      label: 'USDT Binance',
+      value: tasas.usdt_binance.toFixed(2),
+      monedaStr: '/ USDT',
+      brecha: tasas.brecha_porcentual,
+      estatus: tasas.usdt_binance > tasas.dolar_bcv ? '⬆ Mayor' : '⬇ Menor',
+      gradient: 'from-emerald-600 to-green-800'
+    }
+  ] : []
+
   // Construir rate cards desde los datos reales
   const buildRateCards = (): RateCardData[] => {
     if (!tasas) return []
     return [
       {
+        id: 'bcv',
         label: 'Dólar BCV',
         currency: 'USD',
         value: tasas.dolar_bcv.toFixed(2),
@@ -99,22 +153,34 @@ export default function HomePage() {
         gradient: 'from-emerald-500/20 to-emerald-900/10',
       },
       {
+        id: 'euro',
         label: 'Euro BCV',
         currency: 'EUR',
         value: tasas.euro_bcv.toFixed(2),
         change: 'BCV Oficial',
         up: true,
         source: 'BCV Oficial',
-        gradient: 'from-green-500/20 to-green-900/10',
+        gradient: 'from-emerald-500/20 to-emerald-900/10',
       },
       {
+        id: 'binance',
         label: 'USDT Binance',
         currency: 'USDT',
         value: tasas.usdt_binance.toFixed(2),
         change: tasas.brecha_porcentual,
         up: tasas.usdt_binance > tasas.dolar_bcv,
         source: 'Binance P2P',
-        gradient: 'from-teal-500/20 to-teal-900/10',
+        gradient: 'from-emerald-500/20 to-emerald-900/10',
+      },
+      {
+        id: 'promedio',
+        label: 'Promedio Bolix',
+        currency: 'PRO',
+        value: tasas.promedio.toFixed(2),
+        change: tasas.brecha_porcentual.replace('%', '') + '%',
+        up: true,
+        source: 'BCV - Binance',
+        gradient: 'from-emerald-500/20 to-emerald-900/10',
       },
     ]
   }
@@ -171,21 +237,43 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Hero — Promedio */}
+      {/* Hero — Carrusel */}
       {tasas && (
-        <HeroCard
-          promedio={tasas.promedio.toFixed(2)}
-          brecha={tasas.brecha_porcentual.replace('%', '')}
-          estatus={(tasas.estatus_mercado || '').includes('Estable') ? '✅ Estable' : '⚠️ Alerta'}
-          ultimaActualizacion={tiempoRelativo()}
-        />
+        <div className="flex flex-col gap-3">
+          <div
+            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 pb-2"
+            onScroll={handleScroll}
+          >
+            {heroSlides.map((slide) => (
+              <HeroCard
+                key={slide.id}
+                label={slide.label}
+                value={slide.value}
+                monedaStr={slide.monedaStr}
+                brecha={slide.brecha}
+                estatus={slide.estatus}
+                ultimaActualizacion={tiempoRelativo()}
+                gradient={slide.gradient}
+              />
+            ))}
+          </div>
+          {/* Paginación */}
+          <div className="flex justify-center gap-1.5 mt-1">
+            {heroSlides.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-1.5 rounded-full transition-all duration-300 ${idx === activeSlide ? 'w-6 bg-emerald-500' : 'w-1.5 bg-zinc-700'}`}
+              />
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Rate Cards */}
       <div className="flex flex-col gap-3">
         <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Fuentes</h2>
         {buildRateCards().map((r) => (
-          <RateCard key={r.currency} {...r} />
+          <RateCard key={r.currency} {...r} onClick={() => handleSourceClick(r.id!)} />
         ))}
       </div>
 
@@ -209,6 +297,8 @@ export default function HomePage() {
         </div>
       )}
       <div className='mt-9'></div>
+
+      <RateHistoryModal source={selectedSource} onClose={() => setSelectedSource(null)} />
     </div>
   )
 }

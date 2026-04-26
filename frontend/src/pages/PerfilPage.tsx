@@ -37,9 +37,6 @@ export default function PerfilPage() {
         { label: 'Versión de la API', value: `v${status.version}` },
         { label: 'Estado', value: status.status === 'online' ? '🟢 En línea' : '🔴 Fuera de línea' },
         { label: 'Fuentes activas', value: status.fuentes.join(' · ') },
-        { label: 'Caché TTL', value: status.cache_ttl },
-        { label: 'Redis', value: status.redis === 'conectado' ? '🟢 Conectado' : '🔴 Desconectado' },
-        { label: 'Uptime', value: status.uptime },
       ]
     : []
 

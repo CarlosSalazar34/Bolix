@@ -13,7 +13,7 @@ from app.models.history import History
 from app.models.cache import Cache 
 from functions.dolar import get_bcv, get_binance
 from middleware.auth import get_current_user
-from app.routes import auth, chatbot, trades, notifications, wallets  # <--- Agregado notifications
+from app.routes import auth, chatbot, trades, notifications, wallets, gestor  # <--- Agregado notifications y gestor
 
 load_dotenv()
 
@@ -188,3 +188,4 @@ app.include_router(chatbot.router, prefix="/bot", tags=["Chatbot"])
 app.include_router(trades.router, tags=["Transacciones"]) # <--- Activado
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notificaciones"])
 app.include_router(wallets.router)
+app.include_router(gestor.router, prefix="/gestor", tags=["Gestor"])

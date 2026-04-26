@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import BottomNav from './components/BottomNav'
 import type { Tab } from './components/BottomNav'
 import HomePage from './pages/HomePage'
-import HistorialPage from './pages/HistorialPage'
+import GestorPage from './pages/GestorPage'
 import PerfilPage from './pages/PerfilPage'
 import WalletPage from './pages/WalletPage'
 import ChatbotPage from './pages/ChatbotPage'
@@ -15,7 +15,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 
 function AppContent() {
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated } = useAuth()
   const [authView, setAuthView] = useState<'login' | 'register'>('login')
   const [tab, setTab] = useState<Tab>('home')
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -58,7 +58,7 @@ function AppContent() {
     <div className="h-dvh bg-zinc-950 flex flex-col relative">
       <main className="flex-1 overflow-y-auto px-5 pt-6 pb-24 scrollbar-hide">
         {tab === 'home' && <HomePage />}
-        {tab === 'historial' && <HistorialPage />}
+        {tab === 'gestor' && <GestorPage />}
         {tab === 'wallet' && <WalletPage />}
         {tab === 'perfil' && <PerfilPage />}
       </main>

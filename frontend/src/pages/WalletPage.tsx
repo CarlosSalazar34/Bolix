@@ -365,7 +365,10 @@ export default function WalletPage() {
               <input
                 value={tradeMonto}
                 onChange={(e) => setTradeMonto(e.target.value)}
-                placeholder="Monto"
+                placeholder={tradeWalletId ? 
+                  `Monto en ${wallets.find(w => w.id === tradeWalletId)?.moneda || 'USDT'}` : 
+                  "Monto"
+                }
                 className="h-9 rounded-lg bg-zinc-950 border border-zinc-700 px-3 text-sm text-white flex-1"
               />
               <button
