@@ -7,7 +7,6 @@ export default function LoginPage({ onNavigateToRegister }: { onNavigateToRegist
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [email, setEmail] = useState('')
-  const [newPassword, setNewPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
@@ -34,7 +33,7 @@ export default function LoginPage({ onNavigateToRegister }: { onNavigateToRegist
     setLoading(true)
 
     try {
-      const res = await requestPasswordReset(email, newPassword)
+      const res = await requestPasswordReset(email)
       setSuccess(res.message)
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al solicitar recuperación')

@@ -169,8 +169,8 @@ export const updateUserPaymentInfo = async (payload: {
     return data;
 };
 
-export const requestPasswordReset = async (email: string, new_password?: string) => {
-    const { data } = await api.post('/auth/forgot-password', { email, new_password });
+export const requestPasswordReset = async (email: string) => {
+    const { data } = await api.post('/auth/forgot-password', { email });
     return data;
 };
 
