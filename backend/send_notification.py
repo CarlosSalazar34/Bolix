@@ -7,6 +7,13 @@ from pywebpush import webpush, WebPushException
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from app.models.user import User
+from app.models.push_subscription import PushSubscription
+from app.models.trade import Trade
+from app.models.wallets import Wallet
+from app.models.history import History
+from app.models.gestor import GestorRecord, GestorCategory
+
 
 # Forzar carga de variables desde .env
 load_dotenv()
@@ -15,8 +22,6 @@ load_dotenv()
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.models.user import User
-from app.models.push_subscription import PushSubscription
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
@@ -29,7 +34,7 @@ VAPID_CLAIM_EMAIL = os.getenv("VAPID_CLAIM_EMAIL")
 
 async def send_notification_to_all(title: str, body: str, username: str = None):
     if not VAPID_PRIVATE_KEY or not VAPID_CLAIM_EMAIL:
-        print("❌ Error: Faltan las claves VAPID en el archivo .env")
+        print("[ERROR] Faltan las claves VAPID en el archivo .env")
         return
 
     engine = create_async_engine(DATABASE_URL, echo=False)
@@ -43,7 +48,7 @@ async def send_notification_to_all(title: str, body: str, username: str = None):
             user = result.scalars().first()
 
             if not user:
-                print(f"❌ Error: Usuario '{username}' no encontrado en la base de datos.")
+                print(f"[ERROR] Usuario '{username}' no encontrado en la base de datos.")
                 return
 
             sub_query = select(PushSubscription).where(PushSubscription.user_id == user.id)
@@ -56,9 +61,9 @@ async def send_notification_to_all(title: str, body: str, username: str = None):
 
         if not subscriptions:
             if username:
-                print(f"⚠️ El usuario '{username}' no tiene notificaciones activadas.")
+                print(f"[WARN] El usuario '{username}' no tiene notificaciones activadas.")
             else:
-                print(f"⚠️ No hay usuarios con notificaciones activadas en la base de datos.")
+                print(f"[WARN] No hay usuarios con notificaciones activadas en la base de datos.")
             return
 
         destino = f"al usuario '{username}'" if username else "a TODOS los usuarios"
@@ -97,7 +102,7 @@ async def send_notification_to_all(title: str, body: str, username: str = None):
             except Exception as e:
                 print(f"[-] Error inesperado: {repr(e)}")
 
-        print(f"✅ Notificación enviada con éxito a {success_count} dispositivos.")
+        print(f"[OK] Notificacion enviada con exito a {success_count} dispositivos.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Enviar notificación Web Push a todos los usuarios o a uno específico.")
