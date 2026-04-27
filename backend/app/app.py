@@ -56,6 +56,7 @@ async def on_startup():
 
 @app.get("/")
 async def root():
+    print("api funcionando")
     return {"app": "Bolix", "dev": "Carlos Salazar and Gabriel Mejia", "status": "online"}
 
 @app.get("/tasa", dependencies=[Depends(get_current_user)])
