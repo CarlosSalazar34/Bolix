@@ -28,9 +28,9 @@ const CURRENCIES: CurrencyOption[] = [
     sublabel: 'Binance P2P',
     icon: '₮',
     getRate: (t, _, mode) => {
-      if (mode === 'min') return t.usdt_min;
-      if (mode === 'max') return t.usdt_max;
-      if (mode === 'avg') return t.usdt_avg;
+      if (mode === 'min') return t.usdt_min ?? t.usdt_binance;
+      if (mode === 'max') return t.usdt_max ?? t.usdt_binance;
+      if (mode === 'avg') return t.usdt_avg ?? t.usdt_binance;
       return t.usdt_binance;
     },
   },
