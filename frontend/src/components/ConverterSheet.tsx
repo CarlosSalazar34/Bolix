@@ -69,7 +69,7 @@ const DEFAULT_AMOUNTS = [1, 5, 10, 20, 50, 100, 500, 1000]
 
 export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetProps) {
   const [selected, setSelected] = useState<Currency>('USD')
-  const [usdtMode, setUsdtMode] = useState<USDTMode>('min')
+  const [usdtMode, setUsdtMode] = useState<USDTMode>('avg')
   const [amount, setAmount] = useState('')
   const [customRateStr, setCustomRateStr] = useState('')
   const [direction, setDirection] = useState<'toBs' | 'fromBs'>('toBs')

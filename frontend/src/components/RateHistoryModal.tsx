@@ -19,13 +19,13 @@ const SOURCE_CONFIG: Record<string, { label: string; icon: string; currency: str
     label: 'Euro BCV',
     icon: '🇪🇺',
     currency: 'EUR',
-    getValue: (item) => item.dolar_bcv, // proxy ya que euro no está en HistorialItem
+    getValue: (item) => item.euro_bcv,
   },
   binance: {
     label: 'USDT Binance',
     icon: '₮',
     currency: 'USDT',
-    getValue: (item) => item.usdt_binance,
+    getValue: (item) => item.usdt_avg,
   },
   promedio: {
     label: 'Promedio Bolix',

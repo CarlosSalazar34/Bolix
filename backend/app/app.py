@@ -111,7 +111,9 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
             nuevo = History(
                 fecha=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 dolar_bcv=b_usd, 
+                euro_bcv=b_eur,
                 usdt_binance=bin_usd, 
+                usdt_avg=binance_data.get('usdt_avg', bin_usd),
                 promedio=prom, 
                 brecha=brecha_val
             )
@@ -170,7 +172,9 @@ async def get_historial(db: AsyncSession = Depends(get_db)):
         data.append({
             "fecha": h.fecha,
             "dolar_bcv": float(h.dolar_bcv),
+            "euro_bcv": float(h.euro_bcv) if h.euro_bcv else 0.0,
             "usdt_binance": float(h.usdt_binance),
+            "usdt_avg": float(h.usdt_avg) if h.usdt_avg else float(h.usdt_binance),
             "promedio": float(h.promedio),
             "brecha": h.brecha
         })
