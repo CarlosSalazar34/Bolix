@@ -114,7 +114,7 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
 
             # 3. Guardar nuevo registro y UPSERT en cache
             nuevo = History(
-                fecha=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                fecha=datetime.now(timezone.utc),
                 dolar_bcv=b_usd, 
                 euro_bcv=b_eur if b_eur else 0.0,
                 usdt_binance=bin_usd, 
@@ -175,7 +175,7 @@ async def get_historial(db: AsyncSession = Depends(get_db)):
     data = []
     for h in historial:
         data.append({
-            "fecha": h.fecha,
+            "fecha": h.fecha.strftime("%Y-%m-%d %H:%M:%S") if h.fecha else None,
             "dolar_bcv": float(h.dolar_bcv),
             "euro_bcv": float(h.euro_bcv) if h.euro_bcv else 0.0,
             "usdt_binance": float(h.usdt_binance),
