@@ -54,6 +54,15 @@ function AppContent() {
     }
   }, [isAuthenticated, tasas, loadTasas])
 
+  // 2.1 Título Dinámico basado en las tasas
+  useEffect(() => {
+    if (tasas?.promedio) {
+      document.title = `Bolix | $ ${tasas.promedio.toFixed(2)}`
+    } else {
+      document.title = "Bolix - Tasas de Cambio en Venezuela"
+    }
+  }, [tasas])
+
   // 3. Renderizado Condicional Estable
   // Si no está autenticado, devolvemos el contenedor de Auth y cortamos la ejecución aquí.
   if (!isAuthenticated) {
