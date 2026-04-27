@@ -130,10 +130,10 @@ export default function HomePage() {
     {
       id: 'binance',
       label: 'USDT Binance',
-      value: tasas.usdt_binance.toFixed(2),
+      value: tasas.usdt_avg.toFixed(2),
       monedaStr: '/ USDT',
       brecha: tasas.brecha_porcentual,
-      estatus: tasas.usdt_binance > tasas.dolar_bcv ? '⬆ Mayor' : '⬇ Menor',
+      estatus: tasas.usdt_avg > tasas.dolar_bcv ? '⬆ Sobre BCV' : '⬇ Bajo BCV',
       gradient: 'from-emerald-600 to-green-800'
     }
   ] : []
@@ -166,9 +166,9 @@ export default function HomePage() {
         id: 'binance',
         label: 'USDT Binance',
         currency: 'USDT',
-        value: tasas.usdt_binance.toFixed(2),
+        value: tasas.usdt_avg.toFixed(2),
         change: tasas.brecha_porcentual,
-        up: tasas.usdt_binance > tasas.dolar_bcv,
+        up: tasas.usdt_avg > tasas.dolar_bcv,
         source: 'Binance P2P',
         gradient: 'from-emerald-500/20 to-emerald-900/10',
       },
