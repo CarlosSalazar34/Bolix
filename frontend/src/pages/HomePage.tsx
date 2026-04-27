@@ -287,7 +287,7 @@ export default function HomePage() {
                 key={i}
                 fecha={h.fecha}
                 dolar_bcv={h.dolar_bcv}
-                binance={h.usdt_binance}
+                binance={h.usdt_avg}
                 promedio={h.promedio}
                 brecha={h.brecha}
                 showBorder={i > 0}
