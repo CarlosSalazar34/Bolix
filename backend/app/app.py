@@ -63,8 +63,11 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
         cache_entry = result.scalars().first()
         
         if cache_entry:
+            data = cache_entry.data
+            has_new_fields = all(k in data for k in ["usdt_min", "usdt_max", "usdt_avg"])
             age = (datetime.now(timezone.utc) - cache_entry.created_at).total_seconds()
-            if age < 600:
+            
+            if age < 600 and has_new_fields:
                 print(f"{GREEN}[CACHE HIT]{RESET} Sirviendo datos de la cache de Carlos...")
                 return {
                     "dolar_bcv": float(cache_entry.data.get('dolar_bcv')),
