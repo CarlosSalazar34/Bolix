@@ -9,12 +9,16 @@ from dotenv import load_dotenv
 
 from jose import jwt
 
+import secrets
+from datetime import datetime, timedelta, timezone
+
 # Importes de tu estructura local
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserOut, UserUpdatePago
+from app.schemas.user import UserCreate, UserOut, UserUpdatePago, ForgotPasswordRequest, ResetPasswordRequest
 from app.schemas.token import Token
 from middleware.auth import get_current_user
+from app.utils.email_utils import send_reset_email
 
 router = APIRouter()
 
@@ -132,3 +136,61 @@ async def update_pago(
     except Exception:
         await db.rollback()
         raise HTTPException(status_code=500, detail="Error al actualizar datos de pago.")
+
+@router.post("/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    # 1. Buscar al usuario por email
+    query = select(User).where(User.email == request.email)
+    result = await db.execute(query)
+    user = result.scalars().first()
+    
+    # 2. Si no existe, igual devolvemos éxito para no revelar si el correo está registrado (Seguridad)
+    if not user:
+        return {"message": "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña."}
+    
+    # 3. Generar token y expiración (1 hora)
+    token = secrets.token_urlsafe(32)
+    user.reset_token = token
+    user.reset_token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+    
+    try:
+        await db.commit()
+        
+        # 4. Enviar correo
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+        reset_link = f"{frontend_url}?reset_token={token}"
+        
+        success = send_reset_email(user.email, reset_link)
+        if not success:
+             raise HTTPException(status_code=500, detail="Error al enviar el correo de recuperación.")
+             
+        return {"message": "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña."}
+    except Exception as e:
+        await db.rollback()
+        print(f"Error en forgot_password: {e}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor.")
+
+@router.post("/reset-password")
+async def reset_password(request: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    # 1. Buscar usuario por token y validar que no haya expirado
+    query = select(User).where(
+        (User.reset_token == request.token) & 
+        (User.reset_token_expiry > datetime.now(timezone.utc))
+    )
+    result = await db.execute(query)
+    user = result.scalars().first()
+    
+    if not user:
+        raise HTTPException(status_code=400, detail="Token inválido o expirado.")
+    
+    # 2. Actualizar contraseña
+    user.hashed_password = get_password_hash(request.new_password)
+    user.reset_token = None
+    user.reset_token_expiry = None
+    
+    try:
+        await db.commit()
+        return {"message": "Contraseña actualizada con éxito."}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Error al actualizar la contraseña.")

@@ -13,11 +13,26 @@ import type { TasaResponse } from './services/api'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import ResetPasswordView from './pages/ResetPasswordView'
 
 function AppContent() {
   const { isAuthenticated } = useAuth()
-  const [authView, setAuthView] = useState<'login' | 'register'>('login')
+  const [authView, setAuthView] = useState<'login' | 'register' | 'reset'>('login')
+  const [resetToken, setResetToken] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('home')
+  
+  // Detectar token de reseteo en la URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('reset_token')
+    if (token) {
+      setResetToken(token)
+      setAuthView('reset')
+      // Limpiar URL sin recargar
+      window.history.replaceState({}, document.title, "/")
+    }
+  }, [])
+
   const [sheetOpen, setSheetOpen] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
   const [tasas, setTasas] = useState<TasaResponse | null>(null)
@@ -44,7 +59,12 @@ function AppContent() {
   if (!isAuthenticated) {
     return (
       <div className="h-dvh bg-zinc-950 flex flex-col relative overflow-hidden">
-        {authView === 'login' ? (
+        {authView === 'reset' && resetToken ? (
+          <ResetPasswordView token={resetToken} onComplete={() => {
+            setResetToken(null)
+            setAuthView('login')
+          }} />
+        ) : authView === 'login' ? (
           <LoginPage onNavigateToRegister={() => setAuthView('register')} />
         ) : (
           <RegisterPage onNavigateToLogin={() => setAuthView('login')} />

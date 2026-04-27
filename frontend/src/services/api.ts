@@ -164,6 +164,16 @@ export const updateUserPaymentInfo = async (payload: {
     return data;
 };
 
+export const requestPasswordReset = async (email: string) => {
+    const { data } = await api.post('/auth/forgot-password', { email });
+    return data;
+};
+
+export const resetPassword = async (token: string, new_password: string) => {
+    const { data } = await api.post('/auth/reset-password', { token, new_password });
+    return data;
+};
+
 export const fetchWallets = async (): Promise<Wallet[]> => {
     const { data } = await api.get<Wallet[]>('/wallets/');
     return data;

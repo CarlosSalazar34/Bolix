@@ -26,3 +26,11 @@ class UserUpdatePago(BaseModel):
     pago_banco: str
     pago_telefono: str
     pago_cedula: str
+
+# Recuperación de contraseña
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
