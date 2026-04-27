@@ -11,7 +11,7 @@ interface CurrencyOption {
   label: string
   sublabel: string
   icon: string
-  getRate: (tasas: TasaResponse, customRate?: number) => number
+  getRate: (tasas: TasaResponse, customRate?: number, mode?: 'min' | 'avg' | 'max') => number
 }
 
 const CURRENCIES: CurrencyOption[] = [
@@ -27,7 +27,12 @@ const CURRENCIES: CurrencyOption[] = [
     label: 'USDT Binance',
     sublabel: 'Binance P2P',
     icon: '₮',
-    getRate: (t) => t.usdt_binance,
+    getRate: (t, _, mode) => {
+      if (mode === 'min') return t.usdt_min;
+      if (mode === 'max') return t.usdt_max;
+      if (mode === 'avg') return t.usdt_avg;
+      return t.usdt_binance;
+    },
   },
   {
     id: 'EUR',
@@ -58,10 +63,13 @@ interface ConverterSheetProps {
   tasas: TasaResponse | null
 }
 
+type USDTMode = 'min' | 'avg' | 'max'
+
 const DEFAULT_AMOUNTS = [1, 5, 10, 20, 50, 100, 500, 1000]
 
 export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetProps) {
   const [selected, setSelected] = useState<Currency>('USD')
+  const [usdtMode, setUsdtMode] = useState<USDTMode>('min')
   const [amount, setAmount] = useState('')
   const [customRateStr, setCustomRateStr] = useState('')
   const [direction, setDirection] = useState<'toBs' | 'fromBs'>('toBs')
@@ -122,7 +130,7 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
   // ── Cálculo ──
   const currentOption = CURRENCIES.find((c) => c.id === selected)!
   const customRateNum = parseFloat(customRateStr) || 0
-  const rate = tasas ? currentOption.getRate(tasas, customRateNum) : 0
+  const rate = tasas ? currentOption.getRate(tasas, customRateNum, usdtMode) : 0
 
   const result = useMemo(() => {
     const num = parseFloat(amount)
@@ -181,6 +189,29 @@ export default function ConverterSheet({ open, onClose, tasas }: ConverterSheetP
               <span className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 font-medium text-sm">
                 Bs.
               </span>
+            </div>
+          </div>
+        )}
+
+        {/* Modos de USDT */}
+        {selected === 'USDT' && (
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest block">
+              Modo de Tasa USDT
+            </label>
+            <div className="flex p-1 bg-zinc-950 border border-zinc-800/50 rounded-2xl gap-1">
+              {(['min', 'avg', 'max'] as USDTMode[]).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setUsdtMode(m)}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200
+                    ${usdtMode === m 
+                      ? 'bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/20' 
+                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/40'}`}
+                >
+                  {m === 'min' ? 'Mínimo' : m === 'avg' ? 'Promedio' : 'Máximo'}
+                </button>
+              ))}
             </div>
           </div>
         )}

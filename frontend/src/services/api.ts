@@ -38,6 +38,9 @@ export interface TasaResponse {
     dolar_bcv: number;
     euro_bcv: number;
     usdt_binance: number;
+    usdt_min: number;
+    usdt_max: number;
+    usdt_avg: number;
     promedio: number;
     brecha_porcentual: string;
     estatus_mercado: string;
@@ -164,8 +167,8 @@ export const updateUserPaymentInfo = async (payload: {
     return data;
 };
 
-export const requestPasswordReset = async (email: string) => {
-    const { data } = await api.post('/auth/forgot-password', { email });
+export const requestPasswordReset = async (email: string, new_password?: string) => {
+    const { data } = await api.post('/auth/forgot-password', { email, new_password });
     return data;
 };
 

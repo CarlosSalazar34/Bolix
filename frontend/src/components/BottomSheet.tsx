@@ -44,19 +44,19 @@ export default function BottomSheet({ open, onClose, children, title }: BottomSh
         className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-500 cubic-bezier-sheet
           ${open ? 'translate-y-0' : 'translate-y-full'}`}
       >
-        <div className="bg-zinc-900 border-t border-zinc-700/60 rounded-t-3xl max-h-[85dvh] overflow-y-auto">
+        <div className="bg-zinc-900 border-t border-zinc-700/60 rounded-t-3xl max-h-[92dvh] overflow-y-auto">
           {/* Handle */}
-          <div className="flex justify-center pt-3 pb-1">
-            <div className="w-10 h-1 rounded-full bg-zinc-600" />
+          <div className="flex justify-center pt-4 pb-2">
+            <div className="w-12 h-1.5 rounded-full bg-zinc-700" />
           </div>
 
           {/* Header */}
           {title && (
-            <div className="flex items-center justify-between px-6 pb-3 pt-1">
-              <h2 className="text-lg font-bold text-white">{title}</h2>
+            <div className="flex items-center justify-between px-6 pb-4 pt-2">
+              <h2 className="text-xl font-bold text-white tracking-tight">{title}</h2>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                className="w-9 h-9 rounded-full bg-zinc-800/80 flex items-center justify-center text-zinc-400 hover:text-white transition-all hover:bg-zinc-700"
               >
                 ✕
               </button>
@@ -64,7 +64,7 @@ export default function BottomSheet({ open, onClose, children, title }: BottomSh
           )}
 
           {/* Content */}
-          <div className="px-6 pb-[env(safe-area-inset-bottom,24px)]">
+          <div className="px-6 pb-[env(safe-area-inset-bottom,32px)] pt-2">
             {children}
           </div>
         </div>

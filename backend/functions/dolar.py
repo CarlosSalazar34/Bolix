@@ -16,7 +16,7 @@ async def get_binance():
         "page": 1,
         "payTypes": [],
         "publisherType": None,
-        "rows": 1,        #se indica 1 para la busqueda del mejor precio posible
+        "rows": 10,        # Obtenemos los 10 mejores precios para calcular min/max/avg
         "tradeType": "BUY"
     }
 
@@ -30,14 +30,18 @@ async def get_binance():
             response = await client.post(url, json=payload, headers=headers)
             data = response.json()
             
-            if data.get('success'):
-                precio = data['data'][0]['adv']['price']
-                # retornar el valor en forma de diccionario
-                return {"usdt": float(precio)} 
-            return {"usdt": None}
+            if data.get('success') and data.get('data'):
+                prices = [float(adv['adv']['price']) for adv in data['data']]
+                return {
+                    "usdt": prices[0], # El mejor precio (mínimo)
+                    "usdt_min": min(prices),
+                    "usdt_max": max(prices),
+                    "usdt_avg": round(sum(prices) / len(prices), 2)
+                }
+            return {"usdt": None, "usdt_min": None, "usdt_max": None, "usdt_avg": None}
     except Exception as e:
         print(f"Error en Binance: {e}")
-        return {"usdt": None}
+        return {"usdt": None, "usdt_min": None, "usdt_max": None, "usdt_avg": None}
 
 
 async def get_bcv():

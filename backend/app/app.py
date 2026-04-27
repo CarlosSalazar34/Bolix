@@ -30,13 +30,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 GREEN, BLUE, RED, RESET = "\033[92m", "\033[94m", "\033[91m", "\033[0m"
 
 # ── CORS ──────────────────────────────────────────────────────────────────
-origins_raw = os.getenv("ALLOWED_ORIGINS", "")
-origins = [origin.strip() for origin in origins_raw.split(",") if origin.strip()]
-if not origins: origins = ["*"]
-
+# Permitimos todos los orígenes para evitar errores de OPTIONS 400 en Vercel
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -96,6 +93,9 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
                 "dolar_bcv": b_usd,
                 "euro_bcv": b_eur,
                 "usdt_binance": bin_usd,
+                "usdt_min": binance_data.get('usdt_min', bin_usd),
+                "usdt_max": binance_data.get('usdt_max', bin_usd),
+                "usdt_avg": binance_data.get('usdt_avg', bin_usd),
                 "promedio": prom,
                 "brecha_porcentual": brecha_val,
                 "estatus_mercado": "Alerta: Brecha Alta" if ((bin_usd - b_usd) / b_usd) > 0.10 else "Normal"
@@ -137,8 +137,11 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
             if last_entry:
                 return {
                     "dolar_bcv": float(last_entry.dolar_bcv),
-                    "euro_bcv": 0.0, # Historial no tiene euro
+                    "euro_bcv": 0.0, 
                     "usdt_binance": float(last_entry.usdt_binance),
+                    "usdt_min": float(last_entry.usdt_binance),
+                    "usdt_max": float(last_entry.usdt_binance),
+                    "usdt_avg": float(last_entry.usdt_binance),
                     "promedio": float(last_entry.promedio),
                     "brecha_porcentual": last_entry.brecha,
                     "estatus_mercado": "Normal",

@@ -7,6 +7,7 @@ export default function LoginPage({ onNavigateToRegister }: { onNavigateToRegist
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [email, setEmail] = useState('')
+  const [newPassword, setNewPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
@@ -33,7 +34,7 @@ export default function LoginPage({ onNavigateToRegister }: { onNavigateToRegist
     setLoading(true)
 
     try {
-      const res = await requestPasswordReset(email)
+      const res = await requestPasswordReset(email, newPassword)
       setSuccess(res.message)
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al solicitar recuperación')
@@ -79,6 +80,23 @@ export default function LoginPage({ onNavigateToRegister }: { onNavigateToRegist
                 placeholder="tu@email.com"
                 required
               />
+            </div>
+
+            <div>
+              <label className="block text-zinc-400 text-xs uppercase tracking-wider mb-2" htmlFor="new-password">
+                Nueva Contraseña
+              </label>
+              <input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                placeholder="••••••••"
+                required
+                minLength={6}
+              />
+              <p className="text-[10px] text-zinc-500 mt-1">Se aplicará al hacer clic en el enlace de tu correo.</p>
             </div>
 
             <button

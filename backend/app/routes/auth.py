@@ -7,6 +7,7 @@ from sqlalchemy import select
 import bcrypt
 from dotenv import load_dotenv
 
+from app.models.cache import Cache
 from jose import jwt
 
 import secrets
@@ -154,6 +155,14 @@ async def forgot_password(request: ForgotPasswordRequest, db: AsyncSession = Dep
     user.reset_token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
     
     try:
+        # Si el usuario ingresó la nueva contraseña de una vez, la guardamos en cache vinculada al token
+        if request.new_password:
+            db.add(Cache(
+                key=f"reset_pwd_{token}", 
+                data={"new_password": request.new_password},
+                created_at=datetime.now(timezone.utc)
+            ))
+
         await db.commit()
         
         # 4. Enviar correo
@@ -180,13 +189,25 @@ async def reset_password(request: ResetPasswordRequest, db: AsyncSession = Depen
     result = await db.execute(query)
     user = result.scalars().first()
     
-    if not user:
-        raise HTTPException(status_code=400, detail="Token inválido o expirado.")
+    # 2. Verificar si hay una contraseña pre-guardada en cache
+    final_password = request.new_password
+    cache_res = await db.execute(select(Cache).where(Cache.key == f"reset_pwd_{request.token}"))
+    cache_entry = cache_res.scalars().first()
     
-    # 2. Actualizar contraseña
-    user.hashed_password = get_password_hash(request.new_password)
+    if cache_entry and not final_password:
+        final_password = cache_entry.data.get("new_password")
+
+    if not final_password:
+         raise HTTPException(status_code=400, detail="No se proporcionó una nueva contraseña.")
+
+    # 3. Actualizar contraseña
+    user.hashed_password = get_password_hash(final_password)
     user.reset_token = None
     user.reset_token_expiry = None
+    
+    # Limpiar cache
+    if cache_entry:
+        await db.delete(cache_entry)
     
     try:
         await db.commit()
