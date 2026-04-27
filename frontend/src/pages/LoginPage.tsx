@@ -82,23 +82,6 @@ export default function LoginPage({ onNavigateToRegister }: { onNavigateToRegist
               />
             </div>
 
-            <div>
-              <label className="block text-zinc-400 text-xs uppercase tracking-wider mb-2" htmlFor="new-password">
-                Nueva Contraseña
-              </label>
-              <input
-                id="new-password"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
-                placeholder="••••••••"
-                required
-                minLength={6}
-              />
-              <p className="text-[10px] text-zinc-500 mt-1">Se aplicará al hacer clic en el enlace de tu correo.</p>
-            </div>
-
             <button
               type="submit"
               disabled={loading}

@@ -190,6 +190,8 @@ async def update_record(
         if not record:
             raise HTTPException(status_code=404, detail="Record no encontrado")
         
+        original_wallet = record.wallet
+        
         # 2. Revertir cambio original en wallet
         original_monto_decimal = Decimal(str(record.monto_convertido))
         if record.tipo == "ingreso":
@@ -229,18 +231,14 @@ async def update_record(
             setattr(record, field, value)
         
         # 6. Actualizar saldos de wallets
-        await db.execute(
-            update(Wallet).where(Wallet.id == original_wallet.id).values(saldo=original_wallet.saldo)
-        )
-        
+        # Actualizamos la wallet original (que ya tiene el saldo revertido)
+        # Y luego la target_wallet (que puede ser la misma o una nueva)
         if record_update.wallet_id != record.wallet_id:
-            await db.execute(
-                update(Wallet).where(Wallet.id == record_update.wallet_id).values(saldo=new_saldo)
-            )
+             # Si cambió de wallet, actualizamos ambas
+             target_wallet.saldo = new_saldo
         else:
-            await db.execute(
-                update(Wallet).where(Wallet.id == record.wallet_id).values(saldo=new_saldo)
-            )
+             # Si es la misma, el saldo final es new_saldo
+             original_wallet.saldo = new_saldo
         
         await db.commit()
         await db.refresh(record)
@@ -277,16 +275,14 @@ async def delete_record(
         
         # 2. Revertir saldo en wallet
         wallet = record.wallet
+        monto_decimal = Decimal(str(record.monto_convertido))
         if record.tipo == "ingreso":
-            new_saldo = wallet.saldo - record.monto_convertido
+            wallet.saldo -= monto_decimal
         else:  # gasto
-            new_saldo = wallet.saldo + record.monto_convertido
+            wallet.saldo += monto_decimal
         
         # 3. Eliminar registro y actualizar wallet
         await db.delete(record)
-        await db.execute(
-            update(Wallet).where(Wallet.id == wallet.id).values(saldo=new_saldo)
-        )
         
         await db.commit()
         return {"message": "Record eliminado exitosamente"}

@@ -30,7 +30,6 @@ class UserUpdatePago(BaseModel):
 # Recuperación de contraseña
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
-    new_password: Optional[str] = None
 
 class ResetPasswordRequest(BaseModel):
     token: str

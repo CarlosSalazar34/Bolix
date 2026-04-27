@@ -89,15 +89,20 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
             bcv_data = await get_bcv()
             binance_data = await get_binance()
 
-            b_usd = float(bcv_data.get('dolar_bcv'))
-            b_eur = float(bcv_data.get('euro_bcv', 0))
-            bin_usd = float(binance_data.get('usdt'))
+            b_usd = bcv_data.get('dolar_bcv')
+            b_eur = bcv_data.get('euro_bcv')
+            bin_usd = binance_data.get('usdt')
+            
+            # Si fallan las fuentes esenciales, lanzamos excepción para ir al fallback
+            if b_usd is None or bin_usd is None:
+                raise ValueError("Fuentes externas incompletas (BCV o Binance caídos)")
+
             prom = round((b_usd + bin_usd) / 2, 2)
             brecha_val = f"{round(((bin_usd - b_usd) / b_usd) * 100, 2)}%"
             
             data_json = {
                 "dolar_bcv": b_usd,
-                "euro_bcv": b_eur,
+                "euro_bcv": b_eur if b_eur else 0.0,
                 "usdt_binance": bin_usd,
                 "usdt_min": binance_data.get('usdt_min', bin_usd),
                 "usdt_max": binance_data.get('usdt_max', bin_usd),
@@ -111,7 +116,7 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
             nuevo = History(
                 fecha=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 dolar_bcv=b_usd, 
-                euro_bcv=b_eur,
+                euro_bcv=b_eur if b_eur else 0.0,
                 usdt_binance=bin_usd, 
                 usdt_avg=binance_data.get('usdt_avg', bin_usd),
                 promedio=prom, 
@@ -145,11 +150,11 @@ async def tasa_dolar(db: AsyncSession = Depends(get_db)):
             if last_entry:
                 return {
                     "dolar_bcv": float(last_entry.dolar_bcv),
-                    "euro_bcv": 0.0, 
+                    "euro_bcv": float(last_entry.euro_bcv) if last_entry.euro_bcv else 0.0, 
                     "usdt_binance": float(last_entry.usdt_binance),
                     "usdt_min": float(last_entry.usdt_binance),
                     "usdt_max": float(last_entry.usdt_binance),
-                    "usdt_avg": float(last_entry.usdt_binance),
+                    "usdt_avg": float(last_entry.usdt_avg) if last_entry.usdt_avg else float(last_entry.usdt_binance),
                     "promedio": float(last_entry.promedio),
                     "brecha_porcentual": last_entry.brecha,
                     "estatus_mercado": "Normal",

@@ -26,18 +26,20 @@ async def get_binance():
     }
 
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(url, json=payload, headers=headers)
             data = response.json()
             
             if data.get('success') and data.get('data'):
-                prices = [float(adv['adv']['price']) for adv in data['data']]
-                return {
-                    "usdt": prices[0], # El mejor precio (mínimo)
-                    "usdt_min": min(prices),
-                    "usdt_max": max(prices),
-                    "usdt_avg": round(sum(prices) / len(prices), 2)
-                }
+                prices = [float(adv['adv']['price']) for adv in data['data'] if adv.get('adv', {}).get('price')]
+                if prices:
+                    return {
+                        "usdt": prices[0], # El mejor precio (mínimo)
+                        "usdt_min": min(prices),
+                        "usdt_max": max(prices),
+                        "usdt_avg": round(sum(prices) / len(prices), 2)
+                    }
+            print("Binance response was not successful or empty data")
             return {"usdt": None, "usdt_min": None, "usdt_max": None, "usdt_avg": None}
     except Exception as e:
         print(f"Error en Binance: {e}")
@@ -46,18 +48,39 @@ async def get_binance():
 
 async def get_bcv():
     url = "https://www.bcv.org.ve/"
-    async with httpx.AsyncClient(verify=False) as client:
-        response = await client.get(url)
-        soup = BeautifulSoup(response.content, "html.parser")
+    try:
+        async with httpx.AsyncClient(verify=False, timeout=10.0) as client:
+            response = await client.get(url)
+            if response.status_code != 200:
+                print(f"BCV returned status {response.status_code}")
+                return {"dolar_bcv": None, "euro_bcv": None}
+                
+            soup = BeautifulSoup(response.content, "html.parser")
 
-        dolar_div = soup.find("div", id="dolar")
-        euro_div = soup.find("div", id="euro")
+            dolar_div = soup.find("div", id="dolar")
+            euro_div = soup.find("div", id="euro")
 
-        dolar_bcv = dolar_div.find("strong").text.strip() if dolar_div else None
-        euro_bcv = euro_div.find("strong").text.strip() if euro_div else None
+            dolar_bcv = None
+            if dolar_div and dolar_div.find("strong"):
+                try:
+                    dolar_bcv = float(dolar_div.find("strong").text.strip().replace(",", "."))
+                except (ValueError, AttributeError):
+                    pass
 
-        return {"dolar_bcv": round(float(dolar_bcv.replace(",", ".")), 2),
-        "euro_bcv": round(float(euro_bcv.replace(",", ".")), 2)}
+            euro_bcv = None
+            if euro_div and euro_div.find("strong"):
+                try:
+                    euro_bcv = float(euro_div.find("strong").text.strip().replace(",", "."))
+                except (ValueError, AttributeError):
+                    pass
+
+            return {
+                "dolar_bcv": round(dolar_bcv, 2) if dolar_bcv else None,
+                "euro_bcv": round(euro_bcv, 2) if euro_bcv else None
+            }
+    except Exception as e:
+        print(f"Error en BCV: {e}")
+        return {"dolar_bcv": None, "euro_bcv": None}
 
 async def get_data():
     bcv = await get_bcv()

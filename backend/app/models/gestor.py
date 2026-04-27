@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -24,14 +24,14 @@ class GestorRecord(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
     tipo = Column(String(10), nullable=False)  # 'ingreso' o 'gasto'
-    monto = Column(Float, nullable=False)
+    monto = Column(Numeric(12, 2), nullable=False)
     categoria_id = Column(Integer, ForeignKey("gestor_categories.id"), nullable=False)
     descripcion = Column(String(500))
     fecha = Column(DateTime(timezone=True), server_default=func.now())
     wallet_id = Column(Integer, ForeignKey("wallets.id"), nullable=False)
     tasa_aplicada = Column(String(20), nullable=False)  # 'bcv', 'binance', 'promedio', 'otro'
-    tasa_valor = Column(Float, nullable=False)  # valor de la tasa usada para conversión
-    monto_convertido = Column(Float, nullable=False)  # monto en moneda de la wallet
+    tasa_valor = Column(Numeric(10, 2), nullable=False)  # valor de la tasa usada para conversión
+    monto_convertido = Column(Numeric(12, 2), nullable=False)  # monto en moneda de la wallet
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relaciones
