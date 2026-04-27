@@ -50,6 +50,7 @@ export interface TasaResponse {
 export interface HistorialItem {
     fecha: string;
     dolar_bcv: number;
+    euro_bcv: number;
     usdt_binance: number;
     usdt_avg: number;
     promedio: number;
