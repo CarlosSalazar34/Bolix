@@ -138,13 +138,7 @@ export default function LoginPage({ onNavigateToRegister }: { onNavigateToRegist
               <label className="block text-zinc-400 text-xs uppercase tracking-wider" htmlFor="password">
                 Contraseña
               </label>
-              <button
-                type="button"
-                onClick={() => setView('forgot')}
-                className="text-emerald-500/80 hover:text-emerald-400 text-[10px] uppercase tracking-widest font-bold transition-colors"
-              >
-                ¿Olvidaste tu contraseña?
-              </button>
+
             </div>
             <input
               id="password"
@@ -172,6 +166,13 @@ export default function LoginPage({ onNavigateToRegister }: { onNavigateToRegist
             Regístrate
           </button>
         </p>
+        <button
+          type="button"
+          onClick={() => setView('forgot')}
+          className="text-emerald-500/80 hover:text-emerald-400 text-[10px] w-full uppercase tracking-widest flex justify-center items-center mt-3 font-bold transition-colors"
+        >
+          ¿Olvidaste tu contraseña?
+        </button>
       </div>
     </div>
   )
